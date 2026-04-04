@@ -2,6 +2,7 @@ package render
 
 import (
 	"context"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -21,9 +22,11 @@ type Engine struct {
 	bounds     image.Rectangle
 	canvas     *image.RGBA
 	gc         *draw2dimg.GraphicContext
+	scene      *components.SceneDocument
 	components []components.Component
 
-	redrawChan chan struct{}
+	redrawChan         chan struct{}
+	interactionHandler func(components.Interaction)
 }
 
 // NewEngine opens the framebuffer and prepares the draw context.
@@ -62,22 +65,97 @@ func (e *Engine) SetComponents(comps []components.Component) {
 	e.TriggerRedraw()
 }
 
+// LoadScene installs a host-owned scene document and rebuilds renderable components.
+func (e *Engine) LoadScene(doc components.SceneDocument) error {
+	comps, err := components.BuildScene(doc, e.bounds)
+	if err != nil {
+		return err
+	}
+
+	docCopy := doc
+	e.mu.Lock()
+	e.scene = &docCopy
+	e.components = comps
+	e.mu.Unlock()
+	e.TriggerRedraw()
+	return nil
+}
+
+// PatchComponent mutates a single scene node and rebuilds the render list.
+func (e *Engine) PatchComponent(patch components.ComponentPatch) error {
+	e.mu.Lock()
+	if e.scene == nil {
+		e.mu.Unlock()
+		return fmt.Errorf("scene is not loaded")
+	}
+	if err := components.ApplyPatch(e.scene, patch); err != nil {
+		e.mu.Unlock()
+		return err
+	}
+	comps, err := components.BuildScene(*e.scene, e.bounds)
+	if err != nil {
+		e.mu.Unlock()
+		return err
+	}
+	e.components = comps
+	e.mu.Unlock()
+	e.TriggerRedraw()
+	return nil
+}
+
+// SetInteractionHandler installs a callback for host-facing touch/component events.
+func (e *Engine) SetInteractionHandler(handler func(components.Interaction)) {
+	e.mu.Lock()
+	e.interactionHandler = handler
+	e.mu.Unlock()
+}
+
 // HandleTouch maps the input X/Y to visual feedback. It safely iterates
 // backwards (top-most component first) over the scenegraph checking bounds.
 func (e *Engine) HandleTouch(x, y int, isRelease bool) {
 	e.mu.Lock()
 	needsRedraw := false
+	interactions := make([]components.Interaction, 0, 2)
+	var topHit image.Rectangle
+	topHitID := ""
 	// Process top-down
 	for i := len(e.components) - 1; i >= 0; i-- {
 		comp := e.components[i]
-		if comp.HandleTouch(x, y, isRelease) {
+		if topHitID == "" && image.Pt(x, y).In(comp.BoundingBox()) {
+			topHit = comp.BoundingBox()
+			topHitID = comp.ID()
+		}
+		result := comp.HandleTouch(x, y, isRelease)
+		if result.NeedsRedraw {
 			needsRedraw = true
 		}
+		if len(result.Interactions) > 0 {
+			interactions = append(interactions, result.Interactions...)
+		}
 	}
+	handler := e.interactionHandler
 	e.mu.Unlock()
 
 	if needsRedraw {
 		e.TriggerRedraw()
+	}
+
+	if handler == nil {
+		return
+	}
+
+	kind := "touch_press"
+	if isRelease {
+		kind = "touch_release"
+	}
+	raw := components.Interaction{Kind: kind, ComponentID: topHitID, X: x, Y: y}
+	if topHitID != "" {
+		raw.LocalX = x - topHit.Min.X
+		raw.LocalY = y - topHit.Min.Y
+	}
+	handler(raw)
+	for _, interaction := range interactions {
+		handler(interaction)
 	}
 }
 

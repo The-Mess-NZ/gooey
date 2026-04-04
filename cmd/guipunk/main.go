@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/The-Mess-NZ/gui-punk/pkg/components"
 	"github.com/The-Mess-NZ/gui-punk/pkg/input"
 	"github.com/The-Mess-NZ/gui-punk/pkg/ipc"
 	"github.com/The-Mess-NZ/gui-punk/pkg/render"
@@ -53,6 +56,9 @@ func main() {
 		log.Fatalf("Failed to start IPC Server over %s: %v", udsSocketPath, err)
 	}
 	defer server.Stop()
+	engine.SetInteractionHandler(func(interaction components.Interaction) {
+		emitEvent(server, interaction.Kind, interaction)
+	})
 
 	// 2. Main Event Loop
 	stop := make(chan os.Signal, 1)
@@ -63,18 +69,60 @@ func main() {
 	for {
 		select {
 		case cmd := <-server.Commands:
-			log.Printf("Received Command: %s, Payload: %s\n", cmd.Action, string(cmd.Payload))
-			// trigger redraw whenever state changes for now
-			engine.TriggerRedraw()
-
-		case evt := <-server.Events:
-			log.Printf("Dispatching Event to host: %s, Payload: %s\n", evt.Type, string(evt.Payload))
-			// Just an echo chamber for now mapping out
+			if err := handleCommand(engine, server, cmd); err != nil {
+				log.Printf("Command %s failed: %v", cmd.Action, err)
+				emitEvent(server, ipc.EventProtocolError, ipc.ErrorPayload{Action: cmd.Action, Message: err.Error()})
+			}
 
 		case <-stop:
 			log.Println("Shutting down gracefully...")
 			cancel() // Signal render engine loop to exit cleanly
 			return
 		}
+	}
+}
+
+func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) error {
+	switch cmd.Action {
+	case ipc.ActionSubmitScene, ipc.ActionReplaceScene:
+		var doc components.SceneDocument
+		if err := json.Unmarshal(cmd.Payload, &doc); err != nil {
+			return fmt.Errorf("invalid scene payload: %w", err)
+		}
+		if err := engine.LoadScene(doc); err != nil {
+			return err
+		}
+		emitEvent(server, ipc.EventSceneLoaded, ipc.AckPayload{ID: doc.Root.ID, Version: doc.Version})
+		return nil
+
+	case ipc.ActionPatchComponent:
+		var patch components.ComponentPatch
+		if err := json.Unmarshal(cmd.Payload, &patch); err != nil {
+			return fmt.Errorf("invalid patch payload: %w", err)
+		}
+		if err := engine.PatchComponent(patch); err != nil {
+			return err
+		}
+		emitEvent(server, ipc.EventComponentPatched, ipc.AckPayload{ID: patch.ID})
+		return nil
+
+	default:
+		return fmt.Errorf("unsupported action %q", cmd.Action)
+	}
+}
+
+// TODO: any, really?
+func emitEvent(server *ipc.Server, eventType string, payload any) {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to marshal %s payload: %v", eventType, err)
+		return
+	}
+
+	event := ipc.Event{Type: eventType, Payload: b}
+	select {
+	case server.Events <- event:
+	default:
+		log.Printf("Dropping IPC event %s because the queue is full", eventType)
 	}
 }
