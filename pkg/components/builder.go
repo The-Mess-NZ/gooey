@@ -21,6 +21,7 @@ func BuildScene(doc SceneDocument, viewport image.Rectangle) ([]Component, error
 	if doc.Root.Bounds != nil && doc.Root.Bounds.Width > 0 && doc.Root.Bounds.Height > 0 {
 		rootRect = doc.Root.Bounds.toImageRect(viewport.Min)
 	}
+	rootRect = clampRect(rootRect, viewport)
 
 	if err := buildNode(doc.Root, rootRect, &components, ids); err != nil {
 		return nil, err
@@ -30,7 +31,7 @@ func BuildScene(doc SceneDocument, viewport image.Rectangle) ([]Component, error
 }
 
 func buildNode(node SceneNode, rect image.Rectangle, out *[]Component, ids map[string]struct{}) error {
-	if !node.isVisible() {
+	if !node.isVisible() || rect.Empty() {
 		return nil
 	}
 	if _, exists := ids[node.ID]; exists {
@@ -39,22 +40,23 @@ func buildNode(node SceneNode, rect image.Rectangle, out *[]Component, ids map[s
 	ids[node.ID] = struct{}{}
 
 	style := mergeStyle(node.Type, node.Style)
+	factory, ok := componentFactory(node.Type)
+	if !ok {
+		return fmt.Errorf("unsupported component type %q", node.Type)
+	}
+	component, err := factory(node, rect, style)
+	if err != nil {
+		return err
+	}
+	*out = append(*out, component)
 
-	switch node.Type {
-	case NodeTypeContainer:
-		*out = append(*out, newContainerComponent(node.ID, rect, style))
+	if len(node.Children) > 0 {
 		childRects := layoutChildren(node, rect)
 		for i := range node.Children {
 			if err := buildNode(node.Children[i], childRects[i], out, ids); err != nil {
 				return err
 			}
 		}
-	case NodeTypeLabel:
-		*out = append(*out, newLabelComponent(node.ID, rect, node.Text, style))
-	case NodeTypeButton:
-		*out = append(*out, newButtonComponent(node.ID, rect, node.Text, node.Action, style))
-	default:
-		return fmt.Errorf("unsupported component type %q", node.Type)
 	}
 
 	return nil
@@ -75,7 +77,7 @@ func layoutChildren(node SceneNode, parent image.Rectangle) []image.Rectangle {
 	if layout.Direction != LayoutDirectionVertical && layout.Direction != LayoutDirectionHorizontal {
 		for i, child := range node.Children {
 			if child.Bounds != nil && child.Bounds.Width > 0 && child.Bounds.Height > 0 {
-				rects[i] = child.Bounds.toImageRect(content.Min)
+				rects[i] = clampRect(child.Bounds.toImageRect(content.Min), content)
 				continue
 			}
 			rects[i] = content
@@ -120,6 +122,12 @@ func layoutChildren(node SceneNode, parent image.Rectangle) []image.Rectangle {
 
 	cursor := 0
 	for i, child := range node.Children {
+		remainingAxis := axisAvailable - cursor
+		if remainingAxis <= 0 {
+			rects[i] = image.Rectangle{}
+			continue
+		}
+
 		axisSize := requestedAxisSize(child, layout.Direction)
 		if axisSize <= 0 {
 			axisSize = autoSize
@@ -132,11 +140,14 @@ func layoutChildren(node SceneNode, parent image.Rectangle) []image.Rectangle {
 		if crossSize <= 0 || crossSize > crossAvailable {
 			crossSize = crossAvailable
 		}
+		if axisSize > remainingAxis {
+			axisSize = remainingAxis
+		}
 
 		if layout.Direction == LayoutDirectionVertical {
-			rects[i] = image.Rect(content.Min.X, content.Min.Y+cursor, content.Min.X+crossSize, content.Min.Y+cursor+axisSize)
+			rects[i] = clampRect(image.Rect(content.Min.X, content.Min.Y+cursor, content.Min.X+crossSize, content.Min.Y+cursor+axisSize), content)
 		} else {
-			rects[i] = image.Rect(content.Min.X+cursor, content.Min.Y, content.Min.X+cursor+axisSize, content.Min.Y+crossSize)
+			rects[i] = clampRect(image.Rect(content.Min.X+cursor, content.Min.Y, content.Min.X+cursor+axisSize, content.Min.Y+crossSize), content)
 		}
 		cursor += axisSize + layout.Gap
 	}
@@ -169,4 +180,11 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func clampRect(rect, bounds image.Rectangle) image.Rectangle {
+	if rect.Empty() {
+		return image.Rectangle{}
+	}
+	return rect.Intersect(bounds)
 }

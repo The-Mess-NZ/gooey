@@ -67,6 +67,10 @@ func (t *TouchListener) Start(ctx context.Context) {
 	}()
 
 	var rawX, rawY int32
+	touchDown := false
+	hasTouchState := false
+	pendingTouchState := false
+	nextTouchDown := false
 
 	for {
 		ev, err := t.dev.ReadOne()
@@ -81,13 +85,32 @@ func (t *TouchListener) Start(ctx context.Context) {
 				rawX = ev.Value
 			case evdev.ABS_Y:
 				rawY = ev.Value
+			case evdev.ABS_MT_POSITION_X:
+				rawX = ev.Value
+			case evdev.ABS_MT_POSITION_Y:
+				rawY = ev.Value
+			case evdev.ABS_PRESSURE:
+				down := ev.Value > 0
+				if !hasTouchState || down != touchDown {
+					hasTouchState = true
+					pendingTouchState = true
+					nextTouchDown = down
+				}
 			}
 		} else if ev.Type == evdev.EV_KEY && ev.Code == evdev.BTN_TOUCH {
-			isRelease := ev.Value == 0
-			if t.handler != nil {
+			down := ev.Value != 0
+			if !hasTouchState || down != touchDown {
+				hasTouchState = true
+				pendingTouchState = true
+				nextTouchDown = down
+			}
+		} else if ev.Type == evdev.EV_SYN && ev.Code == evdev.SYN_REPORT {
+			if pendingTouchState && t.handler != nil {
+				touchDown = nextTouchDown
+				pendingTouchState = false
 				x, y := t.transformCoordinates(rawX, rawY)
-				log.Printf("Touch event at (%d, %d)", x, y)
-				t.handler.HandleTouch(x, y, isRelease)
+				log.Printf("Touch event at (%d, %d), release=%t", x, y, !touchDown)
+				t.handler.HandleTouch(x, y, !touchDown)
 			}
 		}
 	}

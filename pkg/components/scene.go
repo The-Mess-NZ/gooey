@@ -65,6 +65,7 @@ type Style struct {
 	BorderColor string  `json:"borderColor,omitempty"`
 	BorderWidth int     `json:"borderWidth,omitempty"`
 	FontSize    float64 `json:"fontSize,omitempty"`
+	TextPadding int     `json:"textPadding,omitempty"`
 }
 
 // ComponentPatch applies targeted changes to an existing scene node.

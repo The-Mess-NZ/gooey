@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/The-Mess-NZ/gui-punk/pkg/components"
@@ -16,6 +17,7 @@ import (
 )
 
 const defaultSocketPath = "/tmp/guipunk.sock"
+const configFileName = "config.json"
 
 type demoState struct {
 	colorFlip bool
@@ -25,6 +27,20 @@ func main() {
 	socketPath := flag.String("socket", defaultSocketPath, "Path to the Gooey Unix domain socket")
 	autoPatch := flag.Bool("auto-patch", true, "Patch the scene in response to button activation events")
 	flag.Parse()
+
+	configPath, err := components.LoadConfigFromCandidates(
+		os.Getenv("GUIPUNK_CONFIG_PATH"),
+		filepath.Join(".", configFileName),
+		filepath.Join("..", configFileName),
+		filepath.Join("..", "..", configFileName),
+		filepath.Join("/etc", "guipunk", configFileName),
+	)
+	if err != nil {
+		log.Fatalf("Failed to load component config: %v", err)
+	}
+	if configPath != "" {
+		log.Printf("Loaded component config from %s", configPath)
+	}
 
 	conn, err := net.Dial("unix", *socketPath)
 	if err != nil {
@@ -79,12 +95,12 @@ func buildDemoScene() components.SceneDocument {
 			Type: components.NodeTypeContainer,
 			Layout: &components.Layout{
 				Direction: components.LayoutDirectionVertical,
-				Gap:       10,
+				Gap:       8,
 				Padding: components.Insets{
-					Top:    10,
-					Right:  10,
-					Bottom: 10,
-					Left:   10,
+					Top:    8,
+					Right:  8,
+					Bottom: 8,
+					Left:   8,
 				},
 			},
 			Style: &components.Style{Background: "#0F151BFF"},
@@ -93,25 +109,26 @@ func buildDemoScene() components.SceneDocument {
 					ID:     "title",
 					Type:   components.NodeTypeLabel,
 					Text:   "Gooey Alpha Demo",
-					Bounds: &components.Rect{Height: 34},
+					Bounds: &components.Rect{Height: 26},
 					Style: &components.Style{
-						Background: "#1B2732FF",
-						Foreground: "#F7F1D5",
-						FontSize:   20,
+						Background:  "#1B2732FF",
+						Foreground:  "#F7F1D5",
+						FontSize:    16,
+						TextPadding: 4,
 					},
 				},
 				{
 					ID:     "panel",
 					Type:   components.NodeTypeContainer,
-					Bounds: &components.Rect{Height: 118},
+					Bounds: &components.Rect{Height: 94},
 					Layout: &components.Layout{
 						Direction: components.LayoutDirectionVertical,
-						Gap:       8,
+						Gap:       6,
 						Padding: components.Insets{
-							Top:    10,
-							Right:  10,
-							Bottom: 10,
-							Left:   10,
+							Top:    8,
+							Right:  8,
+							Bottom: 8,
+							Left:   8,
 						},
 					},
 					Style: &components.Style{
@@ -124,21 +141,21 @@ func buildDemoScene() components.SceneDocument {
 							ID:     "status",
 							Type:   components.NodeTypeLabel,
 							Text:   "Scene submitted. Touch a button.",
-							Bounds: &components.Rect{Height: 34},
+							Bounds: &components.Rect{Height: 28},
 							Style: &components.Style{
 								Background: "#23313DFF",
 								Foreground: "#F2F2E9",
-								FontSize:   16,
+								FontSize:   13,
 							},
 						},
 						{
 							ID:     "instructions",
 							Type:   components.NodeTypeLabel,
-							Text:   "Expected: touch_press, touch_release, component_activate over UDS.",
-							Bounds: &components.Rect{Height: 48},
+							Text:   "Expected events: touch_press, touch_release, component_activate.",
+							Bounds: &components.Rect{Height: 40},
 							Style: &components.Style{
 								Foreground: "#C7D2DB",
-								FontSize:   14,
+								FontSize:   12,
 							},
 						},
 					},
@@ -146,10 +163,10 @@ func buildDemoScene() components.SceneDocument {
 				{
 					ID:     "button-row",
 					Type:   components.NodeTypeContainer,
-					Bounds: &components.Rect{Height: 72},
+					Bounds: &components.Rect{Height: 56},
 					Layout: &components.Layout{
 						Direction: components.LayoutDirectionHorizontal,
-						Gap:       10,
+						Gap:       8,
 					},
 					Children: []components.SceneNode{
 						{
@@ -168,7 +185,6 @@ func buildDemoScene() components.SceneDocument {
 								Foreground:  "#FFF0E0",
 								BorderColor: "#E7B596FF",
 								BorderWidth: 2,
-								FontSize:    18,
 							},
 						},
 					},
@@ -176,11 +192,11 @@ func buildDemoScene() components.SceneDocument {
 				{
 					ID:     "footer",
 					Type:   components.NodeTypeLabel,
-					Text:   "Run: go run ./cmd/scene-demo while guipunk is already running.",
-					Bounds: &components.Rect{Height: 28},
+					Text:   "Touch both buttons to test live patches.",
+					Bounds: &components.Rect{Height: 20},
 					Style: &components.Style{
 						Foreground: "#96A6B3",
-						FontSize:   14,
+						FontSize:   11,
 					},
 				},
 			},
@@ -245,7 +261,6 @@ func patchStatus(conn net.Conn, state *demoState, interaction components.Interac
 	statusStyle := &components.Style{
 		Background: "#214357FF",
 		Foreground: "#F2F2E9",
-		FontSize:   16,
 	}
 	footerText := "Touch both buttons to verify event emission and patching are live."
 

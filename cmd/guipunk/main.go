@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/The-Mess-NZ/gui-punk/pkg/components"
@@ -17,10 +18,26 @@ import (
 
 const udsSocketPath = "/tmp/guipunk.sock" // For production Midipunk, use /run/guipunk.sock
 const fbDevicePath = "/dev/fb0"           // The Raspberry Pi SPI framebuffer device
-const touchDevPath = "/dev/input/event0"  // Resistive touch STMPE-TS Evdev controller
+const touchDevPath = "/dev/input/event1"  // Resistive touch STMPE-TS Evdev controller
+const configFileName = "config.json"
 
 func main() {
 	log.Println("Initializing GUIPunk Framebuffer service...")
+	configPath, err := components.LoadConfigFromCandidates(
+		os.Getenv("GUIPUNK_CONFIG_PATH"),
+		filepath.Join(".", configFileName),
+		filepath.Join("..", configFileName),
+		filepath.Join("..", "..", configFileName),
+		filepath.Join("/etc", "guipunk", configFileName),
+	)
+	if err != nil {
+		log.Fatalf("Failed to load component config: %v", err)
+	}
+	if configPath != "" {
+		log.Printf("Loaded component config from %s", configPath)
+	} else {
+		log.Println("No component config found; using built-in defaults")
+	}
 
 	// 1. Setup Graphics Rendering Engine
 	engine, err := render.NewEngine(fbDevicePath)
