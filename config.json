@@ -12,7 +12,7 @@
     }
   },
   "touch": {
-    "devicePath": "/dev/input/event1",
+    "devicePath": "/dev/input/by-path/platform-fe204000.spi-cs-1-platform-stmpe-ts-event",
     "minXRaw": 387,
     "maxXRaw": 3520,
     "minYRaw": 642,
