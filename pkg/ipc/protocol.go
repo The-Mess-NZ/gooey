@@ -4,6 +4,7 @@ const (
 	ActionSubmitScene    = "submit_scene"
 	ActionReplaceScene   = "replace_scene"
 	ActionPatchComponent = "patch_component"
+	ActionGetStatus      = "get_status"
 
 	EventTouchPress        = "touch_press"
 	EventTouchRelease      = "touch_release"
@@ -37,7 +38,20 @@ type ErrorPayload struct {
 	Message string `json:"message"`
 }
 
+// StatusPayload reports the current Gooey runtime state.
+type StatusPayload struct {
+	SceneLoaded     bool   `json:"sceneLoaded"`
+	SceneVersion    string `json:"sceneVersion,omitempty"`
+	RootID          string `json:"rootId,omitempty"`
+	ComponentCount  int    `json:"componentCount"`
+	TouchConfigured bool   `json:"touchConfigured"`
+	TouchDevicePath string `json:"touchDevicePath,omitempty"`
+	ConfigPath      string `json:"configPath,omitempty"`
+}
+
 // DiagnosticsPayload reports non-fatal runtime details useful for recovery.
 type DiagnosticsPayload struct {
-	Message string `json:"message"`
+	Kind    string         `json:"kind"`
+	Message string         `json:"message,omitempty"`
+	Status  *StatusPayload `json:"status,omitempty"`
 }

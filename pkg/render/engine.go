@@ -29,6 +29,14 @@ type Engine struct {
 	interactionHandler func(components.Interaction)
 }
 
+// StatusSnapshot describes the current runtime scene state.
+type StatusSnapshot struct {
+	SceneLoaded    bool
+	SceneVersion   string
+	RootID         string
+	ComponentCount int
+}
+
 // NewEngine opens the framebuffer and prepares the draw context.
 func NewEngine(devicePath string) (*Engine, error) {
 	fb, err := framebuffer.Open(devicePath)
@@ -108,6 +116,20 @@ func (e *Engine) SetInteractionHandler(handler func(components.Interaction)) {
 	e.mu.Lock()
 	e.interactionHandler = handler
 	e.mu.Unlock()
+}
+
+// Snapshot returns the current runtime scene status.
+func (e *Engine) Snapshot() StatusSnapshot {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	snapshot := StatusSnapshot{ComponentCount: len(e.components)}
+	if e.scene == nil {
+		return snapshot
+	}
+	snapshot.SceneLoaded = true
+	snapshot.SceneVersion = e.scene.Version
+	snapshot.RootID = e.scene.Root.ID
+	return snapshot
 }
 
 // HandleTouch maps the input X/Y to visual feedback. It safely iterates

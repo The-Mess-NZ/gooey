@@ -88,15 +88,26 @@ func (s *Server) acceptLoop() {
 		log.Println("Host connected to IPC UDS")
 
 		s.mu.Lock()
+		replaced := false
 		// If an old connection exists, close it (only allow 1 host connecting at a time)
 		// TODO: This could result in a fight between two clients.
 		if s.clientConn != nil {
 			log.Println("Replacing previous IPC client connection")
+			replaced = true
 			s.clientConn.Close()
 		}
 
 		s.clientConn = conn
 		s.mu.Unlock()
+
+		diagnostics := DiagnosticsPayload{Kind: "client_connected", Message: "connected to Gooey IPC server"}
+		if replaced {
+			diagnostics.Kind = "client_replaced"
+			diagnostics.Message = "connected to Gooey IPC server and replaced the previous client"
+		}
+		if err := writeEvent(conn, Event{Type: EventDiagnostics, Payload: mustMarshal(diagnostics)}); err != nil {
+			log.Printf("Failed to write diagnostics event to host: %v\n", err)
+		}
 
 		go s.handleConnection(conn)
 	}

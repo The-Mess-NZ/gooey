@@ -77,11 +77,13 @@ Expected result:
 2. Disconnect the client.
 3. Reconnect a client.
 4. Resubmit the scene.
+5. Request a status snapshot with `get_status`.
 
 Expected result:
 
 - Gooey remains running across disconnects.
 - The reconnecting host can resubmit and continue driving the UI.
+- A `diagnostics` event returns a coherent runtime status snapshot after reconnect.
 - No panic or stale socket failure occurs.
 
 ## 7. Diagnostics To Capture

@@ -29,7 +29,7 @@ Message envelopes are defined in [pkg/ipc/socket.go](/home/admin/gooey/pkg/ipc/s
 4. Read events in a loop.
 5. Apply targeted `patch_component` updates when application state changes.
 6. Resubmit a full scene when the overall screen or document structure changes substantially.
-7. Reconnect and resubmit on socket disconnect.
+7. On socket disconnect, reconnect, resubmit the last full scene, and request a status snapshot.
 
 ## Command Flow
 
@@ -73,6 +73,13 @@ The host should generally treat `component_activate` as the business-level signa
 ## Go Helper
 
 Gooey now ships a small host-side client helper in [pkg/ipc/client.go](/home/admin/gooey/pkg/ipc/client.go).
+
+Useful reconnect helpers:
+
+- `Reconnect()`
+- `ReconnectAndResubmit()`
+- `RequestStatus()`
+- `RememberedScene()`
 
 Hello World Client Example:
 
@@ -152,6 +159,8 @@ Watch for:
 Structured `protocol_error` payloads now include a stable `code` field in addition to the human-readable `message`.
 
 If `protocol_error` arrives, log it, inspect the rejected command, and prefer resubmitting a full scene when recovery is ambiguous.
+
+After reconnect, request `get_status` and inspect the `diagnostics` payload to confirm that Gooey is running, whether a scene is currently loaded, and which root document Gooey believes is active.
 
 ## Midipunk Mapping Pattern
 

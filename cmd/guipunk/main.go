@@ -93,7 +93,7 @@ func main() {
 	for {
 		select {
 		case cmd := <-server.Commands:
-			if err := handleCommand(engine, server, cmd); err != nil {
+			if err := handleCommand(engine, server, cmd, configPath); err != nil {
 				payload := protocolErrorPayload(cmd.Action, err)
 				log.Printf("Command %s failed [%s]: %v", cmd.Action, payload.Code, err)
 				emitEvent(server, ipc.EventProtocolError, payload)
@@ -107,7 +107,7 @@ func main() {
 	}
 }
 
-func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) error {
+func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command, configPath string) error {
 	switch cmd.Action {
 	case ipc.ActionSubmitScene, ipc.ActionReplaceScene:
 		var doc components.SceneDocument
@@ -118,6 +118,9 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) e
 		// Then validate the parsed document for semantic correctness
 		if err := components.ValidateSceneDocument(doc); err != nil {
 			return err
+		}
+		if doc.Version == "" {
+			doc.Version = components.SceneVersionAlpha1
 		}
 		if err := engine.LoadScene(doc); err != nil {
 			return err
@@ -141,8 +144,30 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) e
 		emitEvent(server, ipc.EventComponentPatched, ipc.AckPayload{ID: patch.ID})
 		return nil
 
+	case ipc.ActionGetStatus:
+		emitEvent(server, ipc.EventDiagnostics, runtimeDiagnostics(engine, configPath))
+		return nil
+
 	default:
 		return fmt.Errorf("unsupported action %q", cmd.Action)
+	}
+}
+
+func runtimeDiagnostics(engine *render.Engine, configPath string) ipc.DiagnosticsPayload {
+	touchCfg := components.TouchSettings()
+	snapshot := engine.Snapshot()
+	return ipc.DiagnosticsPayload{
+		Kind:    "status_snapshot",
+		Message: "current Gooey runtime status",
+		Status: &ipc.StatusPayload{
+			SceneLoaded:     snapshot.SceneLoaded,
+			SceneVersion:    snapshot.SceneVersion,
+			RootID:          snapshot.RootID,
+			ComponentCount:  snapshot.ComponentCount,
+			TouchConfigured: touchCfg.DevicePath != "" && touchCfg.DevicePath != "/dev/null",
+			TouchDevicePath: touchCfg.DevicePath,
+			ConfigPath:      configPath,
+		},
 	}
 }
 

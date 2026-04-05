@@ -17,6 +17,7 @@ Supported `action` values in this implementation:
 - `submit_scene`: Load a scene document and replace any current scene.
 - `replace_scene`: Alias of `submit_scene` for protocol clarity.
 - `patch_component`: Apply a targeted patch to a node identified by `id`.
+- `get_status`: Request a runtime status snapshot from Gooey.
 
 ## Scene Document
 
@@ -121,6 +122,26 @@ Events currently emitted:
 ```
 
 For alpha, Gooey emits press/release plus component activation. High-volume move or gesture streaming is intentionally out of scope.
+
+`diagnostics` currently carries either connection lifecycle notices or a status snapshot.
+
+Status snapshot example:
+
+```json
+{
+  "kind": "status_snapshot",
+  "message": "current Gooey runtime status",
+  "status": {
+    "sceneLoaded": true,
+    "sceneVersion": "v1alpha1",
+    "rootId": "root",
+    "componentCount": 7,
+    "touchConfigured": true,
+    "touchDevicePath": "/dev/input/event1",
+    "configPath": "./config.json"
+  }
+}
+```
 
 ## Error Model
 
