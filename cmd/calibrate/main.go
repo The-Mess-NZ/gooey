@@ -176,10 +176,7 @@ func (c *rawTouchCollector) HandleRawTouch(rawX, rawY int32, isRelease bool) {
 	if !isRelease {
 		return
 	}
-	select {
-	case c.samples <- rawPoint{x: rawX, y: rawY}:
-	default:
-	}
+	c.samples <- rawPoint{x: rawX, y: rawY}
 }
 
 func renderStep(engine *render.Engine, viewport image.Rectangle, step calibrationStep, complete bool, footer string) {

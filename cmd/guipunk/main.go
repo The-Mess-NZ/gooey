@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -93,8 +94,9 @@ func main() {
 		select {
 		case cmd := <-server.Commands:
 			if err := handleCommand(engine, server, cmd); err != nil {
-				log.Printf("Command %s failed: %v", cmd.Action, err)
-				emitEvent(server, ipc.EventProtocolError, ipc.ErrorPayload{Action: cmd.Action, Message: err.Error()})
+				payload := protocolErrorPayload(cmd.Action, err)
+				log.Printf("Command %s failed [%s]: %v", cmd.Action, payload.Code, err)
+				emitEvent(server, ipc.EventProtocolError, payload)
 			}
 
 		case <-stop:
@@ -109,8 +111,13 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) e
 	switch cmd.Action {
 	case ipc.ActionSubmitScene, ipc.ActionReplaceScene:
 		var doc components.SceneDocument
+		// First try to unmarshal the raw payload into a SceneDocument
 		if err := json.Unmarshal(cmd.Payload, &doc); err != nil {
-			return fmt.Errorf("invalid scene payload: %w", err)
+			return &components.ValidationError{Code: components.ValidationCodeInvalidScene, Message: fmt.Sprintf("invalid scene payload: %v", err)}
+		}
+		// Then validate the parsed document for semantic correctness
+		if err := components.ValidateSceneDocument(doc); err != nil {
+			return err
 		}
 		if err := engine.LoadScene(doc); err != nil {
 			return err
@@ -120,8 +127,13 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) e
 
 	case ipc.ActionPatchComponent:
 		var patch components.ComponentPatch
+		// First try to unmarshal the raw payload into a ComponentPatch
 		if err := json.Unmarshal(cmd.Payload, &patch); err != nil {
-			return fmt.Errorf("invalid patch payload: %w", err)
+			return &components.ValidationError{Code: components.ValidationCodeInvalidPatch, Message: fmt.Sprintf("invalid patch payload: %v", err)}
+		}
+		// Then validate the parsed patch for semantic correctness
+		if err := components.ValidateComponentPatch(patch); err != nil {
+			return err
 		}
 		if err := engine.PatchComponent(patch); err != nil {
 			return err
@@ -134,7 +146,34 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command) e
 	}
 }
 
-// TODO: any, really?
+// TODO: Is this in the right place?
+func protocolErrorPayload(action string, err error) ipc.ErrorPayload {
+	payload := ipc.ErrorPayload{Action: action, Code: ipc.ErrorCodeInternal, Message: err.Error()}
+	var validationErr *components.ValidationError
+	if errors.As(err, &validationErr) {
+		switch validationErr.Code {
+		case components.ValidationCodeInvalidScene:
+			payload.Code = ipc.ErrorCodeInvalidScene
+		case components.ValidationCodeInvalidPatch:
+			payload.Code = ipc.ErrorCodeInvalidPatch
+		default:
+			payload.Code = validationErr.Code
+		}
+		payload.Message = validationErr.Message
+		return payload
+	}
+
+	if err.Error() == "scene is not loaded" {
+		payload.Code = ipc.ErrorCodeSceneNotLoaded
+		return payload
+	}
+	if len(action) > 0 && len(err.Error()) >= len("unsupported action") && err.Error()[:len("unsupported action")] == "unsupported action" {
+		payload.Code = ipc.ErrorCodeUnknownAction
+	}
+	return payload
+}
+
+// TODO: any, really? Can we type better?
 func emitEvent(server *ipc.Server, eventType string, payload any) {
 	b, err := json.Marshal(payload)
 	if err != nil {

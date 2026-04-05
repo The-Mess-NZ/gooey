@@ -149,6 +149,8 @@ Watch for:
 - `component_patched`
 - `protocol_error`
 
+Structured `protocol_error` payloads now include a stable `code` field in addition to the human-readable `message`.
+
 If `protocol_error` arrives, log it, inspect the rejected command, and prefer resubmitting a full scene when recovery is ambiguous.
 
 ## Midipunk Mapping Pattern
@@ -167,3 +169,4 @@ This keeps Gooey generic while letting Midipunk stay the source of truth.
 - [docs/protocol-v1alpha1.md](/home/admin/gooey/docs/protocol-v1alpha1.md)
 - [docs/scenegraph-reference.md](/home/admin/gooey/docs/scenegraph-reference.md)
 - [docs/examples/alpha-demo-scene.json](/home/admin/gooey/docs/examples/alpha-demo-scene.json)
+- [docs/hardware-smoke-test.md](/home/admin/gooey/docs/hardware-smoke-test.md)

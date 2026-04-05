@@ -3,6 +3,7 @@ package ipc
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -88,7 +89,9 @@ func (s *Server) acceptLoop() {
 
 		s.mu.Lock()
 		// If an old connection exists, close it (only allow 1 host connecting at a time)
+		// TODO: This could result in a fight between two clients.
 		if s.clientConn != nil {
+			log.Println("Replacing previous IPC client connection")
 			s.clientConn.Close()
 		}
 
@@ -107,6 +110,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 		var cmd Command
 		if err := json.Unmarshal(line, &cmd); err != nil {
 			log.Printf("Failed to unmarshal command: %v (raw: %s)\n", err, string(line))
+			s.writeProtocolError(conn, ErrorPayload{Code: ErrorCodeInvalidEnvelope, Message: fmt.Sprintf("invalid command envelope: %v", err)})
+			continue
+		}
+		if cmd.Action == "" {
+			s.writeProtocolError(conn, ErrorPayload{Code: ErrorCodeInvalidCommand, Message: "command action is required"})
 			continue
 		}
 		s.Commands <- cmd
@@ -137,14 +145,7 @@ func (s *Server) sendLoop() {
 			continue // No active client connected, drop an event rather than panic
 		}
 
-		b, err := json.Marshal(event)
-		if err != nil {
-			log.Printf("Failed to marshal event: %v\n", err)
-			continue
-		}
-		b = append(b, '\n') // Newline separator for JSON protocol
-
-		if _, err := conn.Write(b); err != nil {
+		if err := writeEvent(conn, event); err != nil {
 			log.Printf("Failed to write event to host: %v\n", err)
 			s.mu.Lock()
 			// Ensure we are closing and clearing the connection that just failed
@@ -155,4 +156,31 @@ func (s *Server) sendLoop() {
 			s.mu.Unlock()
 		}
 	}
+}
+
+func (s *Server) writeProtocolError(conn net.Conn, payload ErrorPayload) {
+	if err := writeEvent(conn, Event{Type: EventProtocolError, Payload: mustMarshal(payload)}); err != nil {
+		log.Printf("Failed to write protocol error to host: %v\n", err)
+	}
+}
+
+// writeEvent marshals and writes an event JSON payload to the connection, appending a newline for framing.
+func writeEvent(conn net.Conn, event Event) error {
+	b, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	b = append(b, '\n')
+	_, err = conn.Write(b)
+	return err
+}
+
+// Ensures that even if marshaling the intended payload fails, we still return a valid JSON error payload to the host.
+func mustMarshal(value any) json.RawMessage {
+	b, err := json.Marshal(value)
+	if err != nil {
+		fallback, _ := json.Marshal(ErrorPayload{Code: ErrorCodeInternal, Message: err.Error()})
+		return fallback
+	}
+	return b
 }

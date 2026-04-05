@@ -104,6 +104,7 @@ Events currently emitted:
 - `scene_loaded`
 - `component_patched`
 - `protocol_error`
+- `diagnostics`
 
 `touch_press`, `touch_release`, and `component_activate` share this payload shape:
 
@@ -120,6 +121,24 @@ Events currently emitted:
 ```
 
 For alpha, Gooey emits press/release plus component activation. High-volume move or gesture streaming is intentionally out of scope.
+
+## Error Model
+
+`protocol_error` payloads now include:
+
+- `action`: The command action when available.
+- `code`: A stable machine-readable failure code.
+- `message`: A human-readable description.
+
+Current codes:
+
+- `invalid_envelope`
+- `invalid_command`
+- `invalid_scene`
+- `invalid_patch`
+- `scene_not_loaded`
+- `unknown_action`
+- `internal_error`
 
 ## Host Helper
 
