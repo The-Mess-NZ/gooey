@@ -2,7 +2,7 @@
   "components": {
     "button": {
       "fontSize": 14,
-      "textPadding": 6,
+      "textPadding": 4,
       "borderWidth": 2
     },
     "container": {},

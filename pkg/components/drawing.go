@@ -120,7 +120,8 @@ func drawText(gc *draw2dimg.GraphicContext, bbox image.Rectangle, text string, s
 		maxLines = 1
 	}
 
-	charWidth := math.Max(fontSize*0.55, 1)
+	// TODO: This 0.65 is a very rough approximation
+	charWidth := math.Max(fontSize*0.65, 1)
 	maxChars := int(math.Floor(float64(content.Dx()) / charWidth))
 	if maxChars < 1 {
 		maxChars = 1
