@@ -2,6 +2,8 @@
 
 Gooey exposes a newline-delimited JSON protocol over a Unix domain socket. The host application owns the authoritative scenegraph and submits either a full scene document or targeted component patches.
 
+This file is the transport-level protocol summary. For the accepted scene schema, see [docs/scenegraph-reference.md](/home/admin/gooey/docs/scenegraph-reference.md). For the recommended host-side usage pattern, see [docs/host-integration-workflow.md](/home/admin/gooey/docs/host-integration-workflow.md).
+
 ## Commands
 
 Each command uses the existing transport envelope:
@@ -17,6 +19,8 @@ Supported `action` values in this implementation:
 - `patch_component`: Apply a targeted patch to a node identified by `id`.
 
 ## Scene Document
+
+The payload for `submit_scene` and `replace_scene` is a `SceneDocument`. A full field-by-field reference lives in [docs/scenegraph-reference.md](/home/admin/gooey/docs/scenegraph-reference.md).
 
 ```json
 {
@@ -50,7 +54,7 @@ Supported `action` values in this implementation:
 }
 ```
 
-Supported node types in this implementation:
+Supported built-in node types in this implementation:
 
 - `container`
 - `label`
@@ -62,6 +66,8 @@ Supported automatic layout directions:
 - `horizontal`
 
 ## Component Patch
+
+The payload for `patch_component` is a `ComponentPatch` that targets one node by ID.
 
 ```json
 {
@@ -114,3 +120,7 @@ Events currently emitted:
 ```
 
 For alpha, Gooey emits press/release plus component activation. High-volume move or gesture streaming is intentionally out of scope.
+
+## Host Helper
+
+For Go hosts, a small reusable client helper is available in [pkg/ipc/client.go](/home/admin/gooey/pkg/ipc/client.go).

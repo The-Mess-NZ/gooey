@@ -1,0 +1,128 @@
+{
+  "version": "v1alpha1",
+  "root": {
+    "id": "root",
+    "type": "container",
+    "layout": {
+      "direction": "vertical",
+      "gap": 8,
+      "padding": {
+        "top": 8,
+        "right": 8,
+        "bottom": 8,
+        "left": 8
+      }
+    },
+    "style": {
+      "background": "#0F151BFF"
+    },
+    "children": [
+      {
+        "id": "title",
+        "type": "label",
+        "text": "Gooey Alpha Demo",
+        "bounds": {
+          "height": 26
+        },
+        "style": {
+          "background": "#1B2732FF",
+          "foreground": "#F7F1D5",
+          "fontSize": 16,
+          "textPadding": 4
+        }
+      },
+      {
+        "id": "panel",
+        "type": "container",
+        "bounds": {
+          "height": 94
+        },
+        "layout": {
+          "direction": "vertical",
+          "gap": 6,
+          "padding": {
+            "top": 8,
+            "right": 8,
+            "bottom": 8,
+            "left": 8
+          }
+        },
+        "style": {
+          "background": "#18222CFF",
+          "borderColor": "#3A5568FF",
+          "borderWidth": 2
+        },
+        "children": [
+          {
+            "id": "status",
+            "type": "label",
+            "text": "Scene submitted. Touch a button.",
+            "bounds": {
+              "height": 28
+            },
+            "style": {
+              "background": "#23313DFF",
+              "foreground": "#F2F2E9",
+              "fontSize": 13
+            }
+          },
+          {
+            "id": "instructions",
+            "type": "label",
+            "text": "Expected events: touch_press, touch_release, component_activate.",
+            "bounds": {
+              "height": 40
+            },
+            "style": {
+              "foreground": "#C7D2DB",
+              "fontSize": 12
+            }
+          }
+        ]
+      },
+      {
+        "id": "button-row",
+        "type": "container",
+        "bounds": {
+          "height": 56
+        },
+        "layout": {
+          "direction": "horizontal",
+          "gap": 8
+        },
+        "children": [
+          {
+            "id": "ping-button",
+            "type": "button",
+            "text": "Ping",
+            "action": "ping"
+          },
+          {
+            "id": "color-button",
+            "type": "button",
+            "text": "Change Status",
+            "action": "change_status",
+            "style": {
+              "background": "#6B3F2FFF",
+              "foreground": "#FFF0E0",
+              "borderColor": "#E7B596FF",
+              "borderWidth": 2
+            }
+          }
+        ]
+      },
+      {
+        "id": "footer",
+        "type": "label",
+        "text": "Touch both buttons to test live patches.",
+        "bounds": {
+          "height": 20
+        },
+        "style": {
+          "foreground": "#96A6B3",
+          "fontSize": 11
+        }
+      }
+    ]
+  }
+}
