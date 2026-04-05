@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
-	"github.com/The-Mess-NZ/gui-punk/pkg/ipc"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/ipc"
 )
 
-const defaultSocketPath = "/tmp/guipunk.sock"
+const defaultSocketPath = "/tmp/gooey.sock"
 const configFileName = "config.json"
 
 type demoState struct {
@@ -29,11 +29,11 @@ func main() {
 	flag.Parse()
 
 	configPath, err := components.LoadConfigFromCandidates(
-		os.Getenv("GUIPUNK_CONFIG_PATH"),
+		os.Getenv("GOOEY_CONFIG_PATH"),
 		filepath.Join(".", configFileName),
 		filepath.Join("..", configFileName),
 		filepath.Join("..", "..", configFileName),
-		filepath.Join("/etc", "guipunk", configFileName),
+		filepath.Join("/etc", "gooey", configFileName),
 	)
 	if err != nil {
 		log.Fatalf("Failed to load component config: %v", err)

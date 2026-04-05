@@ -19,8 +19,8 @@
     "maxYRaw": 3523,
     "ScreenXPixels": 240,
     "ScreenYPixels": 320,
-    "invertX": true,
-    "invertY": false,
+    "invertX": false,
+    "invertY": true,
     "isLandscape": true
   }
 }

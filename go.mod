@@ -1,4 +1,4 @@
-module github.com/The-Mess-NZ/gui-punk
+module github.com/The-Mess-NZ/gooey
 
 go 1.24.2
 

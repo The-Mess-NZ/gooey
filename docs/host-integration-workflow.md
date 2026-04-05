@@ -17,7 +17,7 @@ Gooey speaks newline-delimited JSON over a Unix domain socket.
 
 Default development socket:
 
-- `/tmp/guipunk.sock`
+- `/tmp/gooey.sock`
 
 Message envelopes are defined in [pkg/ipc/socket.go](/home/admin/gooey/pkg/ipc/socket.go) and protocol constants in [pkg/ipc/protocol.go](/home/admin/gooey/pkg/ipc/protocol.go).
 
@@ -89,12 +89,12 @@ package main
 import (
 	"log"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
-	"github.com/The-Mess-NZ/gui-punk/pkg/ipc"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/ipc"
 )
 
 func main() {
-	client, err := ipc.Dial("/tmp/guipunk.sock")
+	client, err := ipc.Dial("/tmp/gooey.sock")
 	if err != nil {
 		log.Fatal(err)
 	}

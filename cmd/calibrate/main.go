@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
-	"github.com/The-Mess-NZ/gui-punk/pkg/input"
-	"github.com/The-Mess-NZ/gui-punk/pkg/render"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/input"
+	"github.com/The-Mess-NZ/gooey/pkg/render"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
@@ -124,11 +124,11 @@ func main() {
 
 func ensureConfigLoaded() (string, error) {
 	configPath, err := components.LoadConfigFromCandidates(
-		os.Getenv("GUIPUNK_CONFIG_PATH"),
+		os.Getenv("GOOEY_CONFIG_PATH"),
 		filepath.Join(".", configFileName),
 		filepath.Join("..", configFileName),
 		filepath.Join("..", "..", configFileName),
-		filepath.Join("/etc", "guipunk", configFileName),
+		filepath.Join("/etc", "gooey", configFileName),
 	)
 	if err != nil {
 		return "", err

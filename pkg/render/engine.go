@@ -9,7 +9,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
 	"github.com/gonutz/framebuffer"
 	"github.com/llgcode/draw2d/draw2dimg"
 )

@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
 )
 
 // Client is a small host-side helper for talking to Gooey over the UDS protocol.

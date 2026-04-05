@@ -23,7 +23,7 @@ type TouchResult struct {
 	Interactions []Interaction
 }
 
-// Component represents a generic graphical UI element in GUIPunk.
+// Component represents a generic graphical UI element in Gooey.
 type Component interface {
 	// ID returns the unique identifier for this component, used for state patching.
 	ID() string

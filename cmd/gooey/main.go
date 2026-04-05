@@ -11,24 +11,24 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/The-Mess-NZ/gui-punk/pkg/components"
-	"github.com/The-Mess-NZ/gui-punk/pkg/input"
-	"github.com/The-Mess-NZ/gui-punk/pkg/ipc"
-	"github.com/The-Mess-NZ/gui-punk/pkg/render"
+	"github.com/The-Mess-NZ/gooey/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/input"
+	"github.com/The-Mess-NZ/gooey/pkg/ipc"
+	"github.com/The-Mess-NZ/gooey/pkg/render"
 )
 
-const udsSocketPath = "/tmp/guipunk.sock" // For production Midipunk, use /run/guipunk.sock
-const fbDevicePath = "/dev/fb0"           // The Raspberry Pi SPI framebuffer device
+const udsSocketPath = "/tmp/gooey.sock" // For production Midipunk, use /run/gooey.sock
+const fbDevicePath = "/dev/fb0"         // The Raspberry Pi SPI framebuffer device
 const configFileName = "config.json"
 
 func main() {
-	log.Println("Initializing GUIPunk Framebuffer service...")
+	log.Println("Initializing Gooey Framebuffer service...")
 	configPath, err := components.LoadConfigFromCandidates(
-		os.Getenv("GUIPUNK_CONFIG_PATH"),
+		os.Getenv("GOOEY_CONFIG_PATH"),
 		filepath.Join(".", configFileName),
 		filepath.Join("..", configFileName),
 		filepath.Join("..", "..", configFileName),
-		filepath.Join("/etc", "guipunk", configFileName),
+		filepath.Join("/etc", "gooey", configFileName),
 	)
 	if err != nil {
 		log.Fatalf("Failed to load component config: %v", err)
@@ -59,7 +59,7 @@ func main() {
 	touchListener, err := input.NewTouchListener(touchCfg.DevicePath, engine)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize touch device on %s: %v", touchCfg.DevicePath, err)
-		log.Println("GUIPunk will continue without touch interaction support.")
+		log.Println("Gooey will continue without touch interaction support.")
 	} else {
 		touchListener.MinXRaw = touchCfg.MinXRaw
 		touchListener.MaxXRaw = touchCfg.MaxXRaw

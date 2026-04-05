@@ -1,4 +1,4 @@
-# GUIPunk Project Guidelines
+# Gooey Project Guidelines
 
 ## Architecture
 - This project is a framebuffer-based GUI service for embedded Linux on Raspberry Pi hardware.
@@ -14,10 +14,10 @@
 
 ## Input and IPC Conventions
 - Touch input is calibrated for evdev devices; keep coordinate transforms, axis swapping, and inversion in the input package.
-- IPC between GUIPunk and the host uses newline-delimited JSON over a Unix domain socket.
+- IPC between Gooey and the host uses newline-delimited JSON over a Unix domain socket.
 - The IPC server is designed around a single active client connection; new connections may replace older ones.
 
 ## Build and Runtime
-- Build the main service with `go build -o guipunk cmd/guipunk/main.go`.
+- Build the main service with `go build -o gooey cmd/gooey/main.go`.
 - `fbtest.go` is a framebuffer diagnostic utility, not part of the main runtime path.
-- Hardware paths such as `/dev/fb0` and `/dev/input/event0` are embedded defaults; keep any changes consistent with the comments in `cmd/guipunk/main.go`.
+- Hardware paths such as `/dev/fb0` and `/dev/input/event0` are embedded defaults; keep any changes consistent with the comments in `cmd/gooey/main.go`.
