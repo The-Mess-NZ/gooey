@@ -1,16 +1,26 @@
 {
   "components": {
-    "label": {
-      "fontSize": 13,
-      "textPadding": 4
-    },
     "button": {
       "fontSize": 14,
       "textPadding": 6,
       "borderWidth": 2
     },
-    "container": {
-      "textPadding": 0
+    "container": {},
+    "label": {
+      "fontSize": 13,
+      "textPadding": 4
     }
+  },
+  "touch": {
+    "devicePath": "/dev/input/event1",
+    "minXRaw": 387,
+    "maxXRaw": 3520,
+    "minYRaw": 642,
+    "maxYRaw": 3523,
+    "ScreenXPixels": 240,
+    "ScreenYPixels": 320,
+    "invertX": true,
+    "invertY": false,
+    "isLandscape": true
   }
 }

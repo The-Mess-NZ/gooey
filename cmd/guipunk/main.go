@@ -18,7 +18,6 @@ import (
 
 const udsSocketPath = "/tmp/guipunk.sock" // For production Midipunk, use /run/guipunk.sock
 const fbDevicePath = "/dev/fb0"           // The Raspberry Pi SPI framebuffer device
-const touchDevPath = "/dev/input/event1"  // Resistive touch STMPE-TS Evdev controller
 const configFileName = "config.json"
 
 func main() {
@@ -38,6 +37,7 @@ func main() {
 	} else {
 		log.Println("No component config found; using built-in defaults")
 	}
+	touchCfg := components.TouchSettings()
 
 	// 1. Setup Graphics Rendering Engine
 	engine, err := render.NewEngine(fbDevicePath)
@@ -55,14 +55,20 @@ func main() {
 
 	// 2. Setup Touch Input via Evdev listener
 	// TODO: The touch functionality and the rendering feel too tightly coupled right now.
-	touchListener, err := input.NewTouchListener(touchDevPath, engine)
+	touchListener, err := input.NewTouchListener(touchCfg.DevicePath, engine)
 	if err != nil {
-		log.Printf("Warning: Failed to initialize touch device on %s: %v", touchDevPath, err)
+		log.Printf("Warning: Failed to initialize touch device on %s: %v", touchCfg.DevicePath, err)
 		log.Println("GUIPunk will continue without touch interaction support.")
 	} else {
-		// Example defaults, Midipunk likely needs tuning here
-		touchListener.SwapXY = true  // Very common for generic TFTs to swap X/Y axes internally
-		touchListener.InvertX = true // Tweak to align
+		touchListener.MinXRaw = touchCfg.MinXRaw
+		touchListener.MaxXRaw = touchCfg.MaxXRaw
+		touchListener.MinYRaw = touchCfg.MinYRaw
+		touchListener.MaxYRaw = touchCfg.MaxYRaw
+		touchListener.ScreenXPixels = touchCfg.ScreenXPixels
+		touchListener.ScreenYPixels = touchCfg.ScreenYPixels
+		touchListener.IsLandscape = touchCfg.IsLandscape
+		touchListener.InvertX = touchCfg.InvertX
+		touchListener.InvertY = touchCfg.InvertY
 
 		go touchListener.Start(ctx)
 	}

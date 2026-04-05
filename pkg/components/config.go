@@ -15,9 +15,25 @@ type ComponentDefaults struct {
 	BorderWidth int     `json:"borderWidth,omitempty"`
 }
 
-// Config contains component defaults loaded from disk.
+// TouchConfig describes touch device selection and calibration.
+// TODO: IsLandscape isn't really implemented yet in terms of drawing the UI differently.
+type TouchConfig struct {
+	DevicePath    string `json:"devicePath"`
+	MinXRaw       int32  `json:"minXRaw"`
+	MaxXRaw       int32  `json:"maxXRaw"`
+	MinYRaw       int32  `json:"minYRaw"`
+	MaxYRaw       int32  `json:"maxYRaw"`
+	ScreenXPixels int    `json:"ScreenXPixels"`
+	ScreenYPixels int    `json:"ScreenYPixels"`
+	InvertX       bool   `json:"invertX"`
+	InvertY       bool   `json:"invertY"`
+	IsLandscape   bool   `json:"isLandscape"`
+}
+
+// Config contains component defaults and runtime device settings loaded from disk.
 type Config struct {
 	Components map[string]ComponentDefaults `json:"components"`
+	Touch      TouchConfig                  `json:"touch,omitempty"`
 }
 
 var (
@@ -40,6 +56,21 @@ func LoadConfig(path string) error {
 	configMu.Lock()
 	currentConfig = mergeConfig(defaultConfig(), cfg)
 	configMu.Unlock()
+	return nil
+}
+
+// SaveConfig writes the currently loaded configuration back to disk.
+func SaveConfig(path string) error {
+	configMu.RLock()
+	data, err := json.MarshalIndent(currentConfig, "", "  ")
+	configMu.RUnlock()
+	if err != nil {
+		return fmt.Errorf("marshal component config: %w", err)
+	}
+	data = append(data, '\n')
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return fmt.Errorf("write component config: %w", err)
+	}
 	return nil
 }
 
@@ -75,6 +106,18 @@ func defaultConfig() Config {
 				BorderWidth: 2,
 			},
 		},
+		Touch: TouchConfig{
+			DevicePath:    "/dev/null",
+			MinXRaw:       0,
+			MaxXRaw:       0,
+			MinYRaw:       0,
+			MaxYRaw:       0,
+			ScreenXPixels: 0,
+			ScreenYPixels: 0,
+			InvertX:       false,
+			InvertY:       false,
+			IsLandscape:   false,
+		},
 	}
 }
 
@@ -86,6 +129,7 @@ func mergeConfig(base, override Config) Config {
 	for key, value := range override.Components {
 		merged.Components[key] = mergeComponentDefaults(merged.Components[key], value)
 	}
+	merged.Touch = mergeTouchConfig(base.Touch, override.Touch)
 	return merged
 }
 
@@ -110,4 +154,46 @@ func componentDefaults(nodeType string) ComponentDefaults {
 		return defaults
 	}
 	return ComponentDefaults{}
+}
+
+// TouchSettings returns the active touch device and calibration settings.
+func TouchSettings() TouchConfig {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	return currentConfig.Touch
+}
+
+// SetTouchSettings updates the active touch device and calibration settings.
+func SetTouchSettings(cfg TouchConfig) {
+	configMu.Lock()
+	currentConfig.Touch = mergeTouchConfig(defaultConfig().Touch, cfg)
+	configMu.Unlock()
+}
+
+func mergeTouchConfig(base, override TouchConfig) TouchConfig {
+	if override.DevicePath != "" {
+		base.DevicePath = override.DevicePath
+	}
+	if override.MinXRaw != 0 {
+		base.MinXRaw = override.MinXRaw
+	}
+	if override.MaxXRaw != 0 {
+		base.MaxXRaw = override.MaxXRaw
+	}
+	if override.MinYRaw != 0 {
+		base.MinYRaw = override.MinYRaw
+	}
+	if override.MaxYRaw != 0 {
+		base.MaxYRaw = override.MaxYRaw
+	}
+	if override.ScreenXPixels != 0 {
+		base.ScreenXPixels = override.ScreenXPixels
+	}
+	if override.ScreenYPixels != 0 {
+		base.ScreenYPixels = override.ScreenYPixels
+	}
+	base.InvertX = override.InvertX
+	base.InvertY = override.InvertY
+	base.IsLandscape = override.IsLandscape
+	return base
 }
