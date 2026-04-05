@@ -120,7 +120,7 @@ func drawText(gc *draw2dimg.GraphicContext, bbox image.Rectangle, text string, s
 		maxLines = 1
 	}
 
-	// TODO: This 0.65 is a very rough approximation
+	// TODO: This 0.65 is a very rough approximation. Could look at using GetStringBounds for better accuracy
 	charWidth := math.Max(fontSize*0.65, 1)
 	maxChars := int(math.Floor(float64(content.Dx()) / charWidth))
 	if maxChars < 1 {
@@ -154,6 +154,7 @@ func drawText(gc *draw2dimg.GraphicContext, bbox image.Rectangle, text string, s
 				x = float64(content.Min.X)
 			}
 		}
+
 		gc.FillStringAt(line, x, y)
 		y += lineHeight
 		if y > float64(content.Max.Y)+fontSize*0.25 {
