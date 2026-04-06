@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/The-Mess-NZ/gooey/pkg/components"
+	"github.com/The-Mess-NZ/gooey/pkg/input"
 	"github.com/gonutz/framebuffer"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
@@ -25,8 +26,8 @@ type Engine struct {
 	scene      *components.SceneDocument
 	components []components.Component
 
-	redrawChan         chan struct{}
-	interactionHandler func(components.Interaction)
+	redrawChan   chan struct{}
+	eventHandler func(string, any)
 }
 
 // StatusSnapshot describes the current runtime scene state.
@@ -111,11 +112,25 @@ func (e *Engine) PatchComponent(patch components.ComponentPatch) error {
 	return nil
 }
 
-// SetInteractionHandler installs a callback for host-facing touch/component events.
-func (e *Engine) SetInteractionHandler(handler func(components.Interaction)) {
+// SetEventHandler installs a callback for host-facing touch, component, and hardware input events.
+func (e *Engine) SetEventHandler(handler func(string, any)) {
 	e.mu.Lock()
-	e.interactionHandler = handler
+	e.eventHandler = handler
 	e.mu.Unlock()
+}
+
+// SetInteractionHandler installs a compatibility callback for touch and component events only.
+func (e *Engine) SetInteractionHandler(handler func(components.Interaction)) {
+	if handler == nil {
+		e.SetEventHandler(nil)
+		return
+	}
+	e.SetEventHandler(func(_ string, payload any) {
+		interaction, ok := payload.(components.Interaction)
+		if ok {
+			handler(interaction)
+		}
+	})
 }
 
 // Snapshot returns the current runtime scene status.
@@ -155,7 +170,7 @@ func (e *Engine) HandleTouch(x, y int, isRelease bool) {
 			interactions = append(interactions, result.Interactions...)
 		}
 	}
-	handler := e.interactionHandler
+	handler := e.eventHandler
 	e.mu.Unlock()
 
 	if needsRedraw {
@@ -175,10 +190,71 @@ func (e *Engine) HandleTouch(x, y int, isRelease bool) {
 		raw.LocalX = x - topHit.Min.X
 		raw.LocalY = y - topHit.Min.Y
 	}
-	handler(raw)
+	handler(kind, raw)
 	for _, interaction := range interactions {
-		handler(interaction)
+		handler(interaction.Kind, interaction)
 	}
+}
+
+// HandleInputEvent resolves a normalized hardware event against the current scene bindings.
+func (e *Engine) HandleInputEvent(event input.Event) {
+	e.mu.Lock()
+	handler := e.eventHandler
+	var binding components.InputBinding
+	hasBinding := false
+	if e.scene != nil {
+		binding, hasBinding = e.scene.InputBindingByID(event.InputID)
+	}
+	e.mu.Unlock()
+
+	if handler == nil || !hasBinding {
+		return
+	}
+
+	report, ok := mapInputEvent(event, binding)
+	if !ok {
+		return
+	}
+	handler("input_event", report)
+}
+
+func mapInputEvent(event input.Event, binding components.InputBinding) (input.Report, bool) {
+	controlType := binding.ControlType
+	if controlType == "" {
+		controlType = components.InputControlTypeButton
+	}
+	if event.ControlType != controlType {
+		return input.Report{}, false
+	}
+
+	action := ""
+	switch event.ControlType {
+	case input.ControlTypeButton:
+		switch event.Phase {
+		case input.PhasePress:
+			action = binding.OnPress
+		case input.PhaseRelease:
+			action = binding.OnRelease
+		default:
+			return input.Report{}, false
+		}
+	default:
+		return input.Report{}, false
+	}
+
+	if action == "" {
+		return input.Report{}, false
+	}
+
+	return input.Report{
+		Source:      event.Source,
+		InputID:     event.InputID,
+		ControlType: event.ControlType,
+		Phase:       event.Phase,
+		Delta:       event.Delta,
+		Value:       event.Value,
+		Action:      action,
+	}, true
 }
 
 // TriggerRedraw queues an asynchronous redraw. It drops duplicate contiguous signals.

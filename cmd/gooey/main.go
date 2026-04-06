@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/The-Mess-NZ/gooey/pkg/components"
 	"github.com/The-Mess-NZ/gooey/pkg/input"
@@ -39,6 +40,7 @@ func main() {
 		log.Println("No component config found; using built-in defaults")
 	}
 	touchCfg := components.TouchSettings()
+	gpioCfg := components.GPIOSettings()
 
 	// 1. Setup Graphics Rendering Engine
 	engine, err := render.NewEngine(fbDevicePath)
@@ -74,14 +76,29 @@ func main() {
 		go touchListener.Start(ctx)
 	}
 
-	// 3. Setup IPC (Unix Domain Socket Server)
+	// 3. Setup GPIO Input listener
+	gpioSpecs, err := buildGPIOButtonSpecs(gpioCfg)
+	if err != nil {
+		log.Printf("Warning: Invalid GPIO configuration: %v", err)
+		log.Println("Gooey will continue without GPIO interaction support.")
+	} else if len(gpioSpecs) > 0 {
+		gpioListener, err := input.NewGPIOListener(gpioSpecs, engine)
+		if err != nil {
+			log.Printf("Warning: Failed to initialize GPIO listener: %v", err)
+			log.Println("Gooey will continue without GPIO interaction support.")
+		} else {
+			go gpioListener.Start(ctx)
+		}
+	}
+
+	// 4. Setup IPC (Unix Domain Socket Server)
 	server := ipc.NewServer(udsSocketPath)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start IPC Server over %s: %v", udsSocketPath, err)
 	}
 	defer server.Stop()
-	engine.SetInteractionHandler(func(interaction components.Interaction) {
-		emitEvent(server, interaction.Kind, interaction)
+	engine.SetEventHandler(func(eventType string, payload any) {
+		emitEvent(server, eventType, payload)
 	})
 
 	// 2. Main Event Loop
@@ -155,6 +172,7 @@ func handleCommand(engine *render.Engine, server *ipc.Server, cmd ipc.Command, c
 
 func runtimeDiagnostics(engine *render.Engine, configPath string) ipc.DiagnosticsPayload {
 	touchCfg := components.TouchSettings()
+	gpioCfg := components.GPIOSettings()
 	snapshot := engine.Snapshot()
 	return ipc.DiagnosticsPayload{
 		Kind:    "status_snapshot",
@@ -166,9 +184,35 @@ func runtimeDiagnostics(engine *render.Engine, configPath string) ipc.Diagnostic
 			ComponentCount:  snapshot.ComponentCount,
 			TouchConfigured: touchCfg.DevicePath != "" && touchCfg.DevicePath != "/dev/null",
 			TouchDevicePath: touchCfg.DevicePath,
+			GPIOConfigured:  len(gpioCfg.Buttons) > 0,
+			GPIOInputCount:  len(gpioCfg.Buttons),
 			ConfigPath:      configPath,
 		},
 	}
+}
+
+func buildGPIOButtonSpecs(cfg components.GPIOConfig) ([]input.GPIOButtonSpec, error) {
+	if len(cfg.Buttons) == 0 {
+		return nil, nil
+	}
+
+	specs := make([]input.GPIOButtonSpec, 0, len(cfg.Buttons))
+	for _, button := range cfg.Buttons {
+		emitPress, emitRelease, err := input.EmitPhases(button.Edges)
+		if err != nil {
+			return nil, fmt.Errorf("gpio button %q: %w", button.ID, err)
+		}
+		specs = append(specs, input.GPIOButtonSpec{
+			ID:          button.ID,
+			Pin:         button.Pin.String(),
+			Pull:        button.Pull,
+			Invert:      button.Invert,
+			Debounce:    time.Duration(button.DebounceMs) * time.Millisecond,
+			EmitPress:   emitPress,
+			EmitRelease: emitRelease,
+		})
+	}
+	return specs, nil
 }
 
 // TODO: Is this in the right place?

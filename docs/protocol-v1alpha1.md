@@ -26,6 +26,16 @@ The payload for `submit_scene` and `replace_scene` is a `SceneDocument`. A full 
 ```json
 {
   "version": "v1alpha1",
+  "inputBindings": [
+    {
+      "id": "next",
+      "onPress": "next_item"
+    },
+    {
+      "id": "back",
+      "onRelease": "cancel"
+    }
+  ],
   "root": {
     "id": "root",
     "type": "container",
@@ -104,6 +114,7 @@ Events currently emitted:
 - `touch_press`
 - `touch_release`
 - `component_activate`
+- `input_event`
 - `scene_loaded`
 - `component_patched`
 - `protocol_error`
@@ -125,6 +136,18 @@ Events currently emitted:
 
 For alpha, Gooey emits press/release plus component activation. High-volume move or gesture streaming is intentionally out of scope.
 
+`input_event` is emitted for scene-bound hardware inputs such as GPIO buttons. Example:
+
+```json
+{
+  "source": "gpio",
+  "inputId": "next",
+  "controlType": "button",
+  "phase": "press",
+  "action": "next_item"
+}
+```
+
 `diagnostics` currently carries either connection lifecycle notices or a status snapshot.
 
 Status snapshot example:
@@ -140,6 +163,8 @@ Status snapshot example:
     "componentCount": 7,
     "touchConfigured": true,
     "touchDevicePath": "/dev/input/event1",
+    "gpioConfigured": true,
+    "gpioInputCount": 2,
     "configPath": "./config.json"
   }
 }

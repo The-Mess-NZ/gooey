@@ -9,6 +9,7 @@ const (
 	EventTouchPress        = "touch_press"
 	EventTouchRelease      = "touch_release"
 	EventComponentActivate = "component_activate"
+	EventInputEvent        = "input_event"
 	EventSceneLoaded       = "scene_loaded"
 	EventComponentPatched  = "component_patched"
 	EventProtocolError     = "protocol_error"
@@ -46,6 +47,8 @@ type StatusPayload struct {
 	ComponentCount  int    `json:"componentCount"`
 	TouchConfigured bool   `json:"touchConfigured"`
 	TouchDevicePath string `json:"touchDevicePath,omitempty"`
+	GPIOConfigured  bool   `json:"gpioConfigured"`
+	GPIOInputCount  int    `json:"gpioInputCount"`
 	ConfigPath      string `json:"configPath,omitempty"`
 }
 

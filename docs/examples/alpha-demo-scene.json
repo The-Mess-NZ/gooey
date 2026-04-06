@@ -1,5 +1,15 @@
 {
   "version": "v1alpha1",
+  "inputBindings": [
+    {
+      "id": "next",
+      "onPress": "ping"
+    },
+    {
+      "id": "back",
+      "onRelease": "change_status"
+    }
+  ],
   "root": {
     "id": "root",
     "type": "container",
@@ -69,7 +79,7 @@
           {
             "id": "instructions",
             "type": "label",
-            "text": "Expected events: touch_press, touch_release, component_activate.",
+            "text": "Expected events: touch_press, touch_release, component_activate, input_event.",
             "bounds": {
               "height": 40
             },

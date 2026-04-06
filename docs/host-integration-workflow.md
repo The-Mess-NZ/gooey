@@ -70,6 +70,8 @@ Typical event sequence for a button tap:
 
 The host should generally treat `component_activate` as the business-level signal and use raw press or release events only when needed for richer interaction handling.
 
+Physical controls that are not rendered scene widgets use `input_event` instead. For example, a GPIO button mapped through `inputBindings` emits `input_event` with fields such as `inputId`, `controlType`, `phase`, and the resolved scene-specific `action`.
+
 ## Go Helper
 
 Gooey now ships a small host-side client helper in [pkg/ipc/client.go](/home/admin/gooey/pkg/ipc/client.go).
@@ -167,14 +169,17 @@ After reconnect, request `get_status` and inspect the `diagnostics` payload to c
 Recommended pattern for Midipunk:
 
 - Translate config and router state into Gooey scene nodes in Midipunk.
+- Add `inputBindings` to each scene when physical buttons should mean different things on different screens.
 - Map route or port IDs directly into stable scene node IDs.
 - Use Gooey `action` strings for UI intent such as `toggle_route` or `select_port`.
-- Convert `component_activate` events back into Midipunk domain commands.
+- Convert `component_activate` events back into Midipunk domain commands for on-screen widgets.
+- Handle `input_event` separately for GPIO or other physical controls.
 
 This keeps Gooey generic while letting Midipunk stay the source of truth.
 
 ## References
 
+- [docs/config-reference.md](/home/admin/gooey/docs/config-reference.md)
 - [docs/protocol-v1alpha1.md](/home/admin/gooey/docs/protocol-v1alpha1.md)
 - [docs/scenegraph-reference.md](/home/admin/gooey/docs/scenegraph-reference.md)
 - [docs/examples/alpha-demo-scene.json](/home/admin/gooey/docs/examples/alpha-demo-scene.json)

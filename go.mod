@@ -6,6 +6,8 @@ require (
 	github.com/gonutz/framebuffer v1.0.0
 	github.com/holoplot/go-evdev v0.0.0-20250804134636-ab1d56a1fe83
 	github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195
+	periph.io/x/conn/v3 v3.7.2
+	periph.io/x/host/v3 v3.8.5
 )
 
 require (

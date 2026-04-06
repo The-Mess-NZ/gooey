@@ -11,6 +11,12 @@ Top-level document shape:
 ```json
 {
   "version": "v1alpha1",
+  "inputBindings": [
+    {
+      "id": "next",
+      "onPress": "next_item"
+    }
+  ],
   "root": {
     "id": "root",
     "type": "container"
@@ -23,7 +29,19 @@ Top-level document shape:
 Fields:
 
 - `version`: Optional. Defaults to `v1alpha1` when omitted.
+- `inputBindings`: Optional. Scene-specific bindings for stable hardware input IDs such as GPIO buttons.
 - `root`: Required. A single `SceneNode` that becomes the root of the rendered tree.
+
+## InputBinding
+
+Fields:
+
+- `id`: Required. Stable hardware input identifier that matches Gooey runtime config.
+- `controlType`: Optional. Defaults to `button`. Other control types are reserved for future protocol revisions.
+- `onPress`: Optional. Host-defined semantic action emitted when a button is pressed.
+- `onRelease`: Optional. Host-defined semantic action emitted when a button is released.
+
+At least one of `onPress` or `onRelease` must be set for each binding.
 
 ## SceneNode
 
@@ -124,7 +142,7 @@ Supported fields:
 - `fontSize`: Optional text size override.
 - `textPadding`: Optional inner padding used by text layout.
 
-Defaults are loaded from [config.json](/home/admin/gooey/config.json).
+Defaults are loaded from [config.json](/home/admin/gooey/config.json). See [docs/config-reference.md](/home/admin/gooey/docs/config-reference.md) for the full Gooey runtime config reference.
 
 ## Patch Model
 
@@ -161,6 +179,7 @@ See [docs/examples/alpha-demo-scene.json](/home/admin/gooey/docs/examples/alpha-
 ## Constraints
 
 - IDs must be unique per scene.
+- Input binding IDs must be unique per scene.
 - Unsupported component types are rejected.
 - Gooey is currently single-client over the UDS transport.
 - Host applications remain the source of truth for scene and business state.

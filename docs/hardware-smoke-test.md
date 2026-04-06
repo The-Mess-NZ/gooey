@@ -58,7 +58,21 @@ Expected result:
 - `component_activate` is emitted only when the release occurs inside an interactive component.
 - Empty-area taps do not activate components.
 
-## 5. Protocol Errors
+## 5. GPIO Input Interaction
+
+1. Configure at least one GPIO button in [config.json](/home/admin/gooey/config.json).
+2. Submit a scene with `inputBindings` for that button.
+3. Press and release the physical button.
+4. Repeat with a debounce-sensitive rapid tap sequence.
+
+Expected result:
+
+- Gooey starts even if GPIO is omitted from config.
+- `input_event` is emitted only for configured and scene-bound GPIO inputs.
+- `phase` reflects whether the button press or release triggered the event.
+- Debounce suppresses switch chatter without preventing normal presses and releases.
+
+## 6. Protocol Errors
 
 1. Send malformed JSON over the socket.
 2. Send a command with no `action`.
@@ -71,7 +85,7 @@ Expected result:
 - `protocol_error` events are emitted with a useful `code` and `message`.
 - Valid later commands still succeed.
 
-## 6. Reconnect Behavior
+## 7. Reconnect Behavior
 
 1. Connect a host client and submit a scene.
 2. Disconnect the client.
@@ -83,10 +97,10 @@ Expected result:
 
 - Gooey remains running across disconnects.
 - The reconnecting host can resubmit and continue driving the UI.
-- A `diagnostics` event returns a coherent runtime status snapshot after reconnect.
+- A `diagnostics` event returns a coherent runtime status snapshot after reconnect, including GPIO status when configured.
 - No panic or stale socket failure occurs.
 
-## 7. Diagnostics To Capture
+## 8. Diagnostics To Capture
 
 When a test fails, capture:
 

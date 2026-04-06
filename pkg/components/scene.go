@@ -7,6 +7,16 @@ import (
 
 const SceneVersionAlpha1 = "v1alpha1"
 
+const InputControlTypeButton = "button"
+
+// InputBinding maps a stable hardware input ID to scene-specific semantics.
+type InputBinding struct {
+	ID          string `json:"id"`
+	ControlType string `json:"controlType,omitempty"`
+	OnPress     string `json:"onPress,omitempty"`
+	OnRelease   string `json:"onRelease,omitempty"`
+}
+
 const (
 	NodeTypeContainer = "container"
 	NodeTypeLabel     = "label"
@@ -19,8 +29,9 @@ const (
 
 // SceneDocument is the host-owned scenegraph submitted to Gooey.
 type SceneDocument struct {
-	Version string    `json:"version,omitempty"`
-	Root    SceneNode `json:"root"`
+	Version       string         `json:"version,omitempty"`
+	InputBindings []InputBinding `json:"inputBindings,omitempty"`
+	Root          SceneNode      `json:"root"`
 }
 
 // SceneNode describes a single renderable or layout node.
@@ -85,6 +96,15 @@ func (d *SceneDocument) normalize() {
 	if d.Version == "" {
 		d.Version = SceneVersionAlpha1
 	}
+	for i := range d.InputBindings {
+		d.InputBindings[i].normalize()
+	}
+}
+
+func (b *InputBinding) normalize() {
+	if b.ControlType == "" {
+		b.ControlType = InputControlTypeButton
+	}
 }
 
 func (n SceneNode) isVisible() bool {
@@ -93,6 +113,16 @@ func (n SceneNode) isVisible() bool {
 
 func (r Rect) toImageRect(origin image.Point) image.Rectangle {
 	return image.Rect(origin.X+r.X, origin.Y+r.Y, origin.X+r.X+r.Width, origin.Y+r.Y+r.Height)
+}
+
+// InputBindingByID returns the scene-specific binding for a stable hardware input.
+func (d SceneDocument) InputBindingByID(id string) (InputBinding, bool) {
+	for _, binding := range d.InputBindings {
+		if binding.ID == id {
+			return binding, true
+		}
+	}
+	return InputBinding{}, false
 }
 
 func (i Insets) inset(rect image.Rectangle) image.Rectangle {

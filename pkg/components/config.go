@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -30,10 +32,67 @@ type TouchConfig struct {
 	IsLandscape   bool   `json:"isLandscape"`
 }
 
+const (
+	GPIOPullFloat = "float"
+	GPIOPullUp    = "up"
+	GPIOPullDown  = "down"
+
+	GPIOEdgePress   = "press"
+	GPIOEdgeRelease = "release"
+)
+
+// GPIOPin accepts either a string or integer JSON pin identifier.
+type GPIOPin string
+
+func (p GPIOPin) String() string {
+	return string(p)
+}
+
+// UnmarshalJSON accepts either a quoted pin name or a numeric BCM GPIO number.
+func (p *GPIOPin) UnmarshalJSON(data []byte) error {
+	if p == nil {
+		return fmt.Errorf("gpio pin target is nil")
+	}
+	if string(data) == "null" {
+		*p = ""
+		return nil
+	}
+
+	var asString string
+	if err := json.Unmarshal(data, &asString); err == nil {
+		*p = GPIOPin(strings.TrimSpace(asString))
+		return nil
+	}
+
+	var asNumber int
+	if err := json.Unmarshal(data, &asNumber); err == nil {
+		*p = GPIOPin(strconv.Itoa(asNumber))
+		return nil
+	}
+
+	return fmt.Errorf("gpio pin must be a string or integer")
+}
+
+// GPIOButtonConfig describes one GPIO-backed momentary button input.
+type GPIOButtonConfig struct {
+	ID         string   `json:"id"`
+	Pin        GPIOPin  `json:"pin"`
+	Pull       string   `json:"pull,omitempty"`
+	Invert     bool     `json:"invert,omitempty"`
+	DebounceMs int      `json:"debounceMs,omitempty"`
+	Edges      []string `json:"edges,omitempty"`
+}
+
+// GPIOConfig describes GPIO-backed hardware inputs.
+type GPIOConfig struct {
+	Buttons []GPIOButtonConfig `json:"buttons,omitempty"`
+}
+
 // Config contains component defaults and runtime device settings loaded from disk.
 type Config struct {
 	Components map[string]ComponentDefaults `json:"components"`
 	Touch      TouchConfig                  `json:"touch,omitempty"`
+	GPIO       GPIOConfig                   `json:"gpio,omitempty"`
 }
 
 var (
@@ -122,6 +181,7 @@ func defaultConfig() Config {
 			InvertY:       false,
 			IsLandscape:   false,
 		},
+		GPIO: GPIOConfig{},
 	}
 }
 
@@ -134,6 +194,7 @@ func mergeConfig(base, override Config) Config {
 		merged.Components[key] = mergeComponentDefaults(merged.Components[key], value)
 	}
 	merged.Touch = mergeTouchConfig(base.Touch, override.Touch)
+	merged.GPIO = mergeGPIOConfig(base.GPIO, override.GPIO)
 	return merged
 }
 
@@ -174,6 +235,20 @@ func SetTouchSettings(cfg TouchConfig) {
 	configMu.Unlock()
 }
 
+// GPIOSettings returns the active GPIO input configuration.
+func GPIOSettings() GPIOConfig {
+	configMu.RLock()
+	defer configMu.RUnlock()
+	return cloneGPIOConfig(currentConfig.GPIO)
+}
+
+// SetGPIOSettings updates the active GPIO input configuration.
+func SetGPIOSettings(cfg GPIOConfig) {
+	configMu.Lock()
+	currentConfig.GPIO = mergeGPIOConfig(defaultConfig().GPIO, cfg)
+	configMu.Unlock()
+}
+
 func mergeTouchConfig(base, override TouchConfig) TouchConfig {
 	if override.DevicePath != "" {
 		base.DevicePath = override.DevicePath
@@ -200,4 +275,26 @@ func mergeTouchConfig(base, override TouchConfig) TouchConfig {
 	base.InvertY = override.InvertY
 	base.IsLandscape = override.IsLandscape
 	return base
+}
+
+func mergeGPIOConfig(base, override GPIOConfig) GPIOConfig {
+	if len(override.Buttons) == 0 {
+		return cloneGPIOConfig(base)
+	}
+	return cloneGPIOConfig(override)
+}
+
+func cloneGPIOConfig(cfg GPIOConfig) GPIOConfig {
+	if len(cfg.Buttons) == 0 {
+		return GPIOConfig{}
+	}
+	cloned := GPIOConfig{Buttons: make([]GPIOButtonConfig, len(cfg.Buttons))}
+	copy(cloned.Buttons, cfg.Buttons)
+	for i := range cloned.Buttons {
+		if len(cfg.Buttons[i].Edges) == 0 {
+			continue
+		}
+		cloned.Buttons[i].Edges = append([]string(nil), cfg.Buttons[i].Edges...)
+	}
+	return cloned
 }

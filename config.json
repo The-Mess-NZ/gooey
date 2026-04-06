@@ -26,5 +26,33 @@
     "invertX": false,
     "invertY": true,
     "isLandscape": true
+  },
+  "gpio": {
+    "buttons": [
+      {
+        "id": "button1",
+        "pin": 23,
+        "pull": "up",
+        "invert": true
+      },
+      {
+        "id": "button2",
+        "pin": 22,
+        "pull": "up",
+        "invert": true
+      },
+      {
+        "id": "button3",
+        "pin": 27,
+        "pull": "up",
+        "invert": true
+      },
+      {
+        "id": "button4",
+        "pin": 18,
+        "pull": "up",
+        "invert": true
+      }
+    ]
   }
 }

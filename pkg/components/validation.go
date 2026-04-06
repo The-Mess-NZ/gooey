@@ -25,6 +25,9 @@ func ValidateSceneDocument(doc SceneDocument) error {
 	if doc.Version != "" && doc.Version != SceneVersionAlpha1 {
 		return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("unsupported scene version %q", doc.Version)}
 	}
+	if err := validateInputBindings(doc.InputBindings); err != nil {
+		return err
+	}
 
 	ids := map[string]struct{}{}
 	if err := validateNode(doc.Root, ids, true); err != nil {
@@ -143,6 +146,31 @@ func validateStyle(style Style, code string) error {
 	}
 	if style.TextPadding < 0 {
 		return &ValidationError{Code: code, Message: "style textPadding must be zero or greater"}
+	}
+	return nil
+}
+
+func validateInputBindings(bindings []InputBinding) error {
+	seen := make(map[string]struct{}, len(bindings))
+	for _, binding := range bindings {
+		if binding.ID == "" {
+			return &ValidationError{Code: ValidationCodeInvalidScene, Message: "input binding id is required"}
+		}
+		if _, exists := seen[binding.ID]; exists {
+			return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("duplicate input binding id %q", binding.ID)}
+		}
+		seen[binding.ID] = struct{}{}
+
+		controlType := binding.ControlType
+		if controlType == "" {
+			controlType = InputControlTypeButton
+		}
+		if controlType != InputControlTypeButton {
+			return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("input binding %q uses unsupported control type %q", binding.ID, controlType)}
+		}
+		if binding.OnPress == "" && binding.OnRelease == "" {
+			return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("input binding %q must define onPress, onRelease, or both", binding.ID)}
+		}
 	}
 	return nil
 }

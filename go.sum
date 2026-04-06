@@ -4,9 +4,15 @@ github.com/gonutz/framebuffer v1.0.0 h1:wWFTPqT2+AQ2DllFTOhLWKaxGxUmXmMsMh2wWXgX
 github.com/gonutz/framebuffer v1.0.0/go.mod h1:wbfYEFSpBxkC4CWzipKZDlKisTkAWors57aJ99aqqhQ=
 github.com/holoplot/go-evdev v0.0.0-20250804134636-ab1d56a1fe83 h1:B+A58zGFuDrvEZpPN+yS6swJA0nzqgZvDzgl/OPyefU=
 github.com/holoplot/go-evdev v0.0.0-20250804134636-ab1d56a1fe83/go.mod h1:iHAf8OIncO2gcQ8XOjS7CMJ2aPbX2Bs0wl5pZyanEqk=
+github.com/jonboulle/clockwork v0.4.0 h1:p4Cf1aMWXnXAUh8lVfewRBx1zaTSYKrKMF2g3ST4RZ4=
+github.com/jonboulle/clockwork v0.4.0/go.mod h1:xgRqUGwRcjKCO1vbZUEtSLrqKoPSsUpK7fnezOII0kc=
 github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195 h1:Vdz2cBh5Fw2MYHWi3ED2PraDQaWEUhNCr1XFHrP4N5A=
 github.com/llgcode/draw2d v0.0.0-20240627062922-0ed1ff131195/go.mod h1:1Vk0LDW6jG5cGc2D9RQUxHaE0vYhTvIwSo9mOL6K4/U=
 github.com/llgcode/ps v0.0.0-20210114104736-f4b0c5d1e02e h1:ZAvbj5hI/G/EbAYAcj4yCXUNiFKefEhH0qfImDDD0/8=
 github.com/llgcode/ps v0.0.0-20210114104736-f4b0c5d1e02e/go.mod h1:1l8ky+Ew27CMX29uG+a2hNOKpeNYEQjjtiALiBlFQbY=
 golang.org/x/image v0.26.0 h1:4XjIFEZWQmCZi6Wv8BoxsDhRU3RVnLX04dToTDAEPlY=
 golang.org/x/image v0.26.0/go.mod h1:lcxbMFAovzpnJxzXS3nyL83K27tmqtKzIJpctK8YO5c=
+periph.io/x/conn/v3 v3.7.2 h1:qt9dE6XGP5ljbFnCKRJ9OOCoiOyBGlw7JZgoi72zZ1s=
+periph.io/x/conn/v3 v3.7.2/go.mod h1:Ao0b4sFRo4QOx6c1tROJU1fLJN1hUIYggjOrkIVnpGg=
+periph.io/x/host/v3 v3.8.5 h1:g4g5xE1XZtDiGl1UAJaUur1aT7uNiFLMkyMEiZ7IHII=
+periph.io/x/host/v3 v3.8.5/go.mod h1:hPq8dISZIc+UNfWoRj+bPH3XEBQqJPdFdx218W92mdc=
