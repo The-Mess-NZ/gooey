@@ -105,6 +105,10 @@ func defaultConfig() Config {
 				TextPadding: 6,
 				BorderWidth: 2,
 			},
+			NodeTypeToggle: {
+				TextPadding: 3,
+				BorderWidth: 2,
+			},
 		},
 		Touch: TouchConfig{
 			DevicePath:    "/dev/null",

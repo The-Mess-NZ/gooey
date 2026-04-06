@@ -60,6 +60,7 @@ Supported built-in node types in this implementation:
 - `container`
 - `label`
 - `button`
+- `toggle`
 
 Supported automatic layout directions:
 
@@ -87,6 +88,7 @@ Supported patch fields in this implementation:
 - `style`
 - `text`
 - `action`
+- `checked`
 - `visible`
 
 ## Events

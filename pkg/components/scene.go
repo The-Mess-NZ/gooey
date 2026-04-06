@@ -11,6 +11,7 @@ const (
 	NodeTypeContainer = "container"
 	NodeTypeLabel     = "label"
 	NodeTypeButton    = "button"
+	NodeTypeToggle    = "toggle"
 
 	LayoutDirectionVertical   = "vertical"
 	LayoutDirectionHorizontal = "horizontal"
@@ -31,6 +32,7 @@ type SceneNode struct {
 	Style    *Style      `json:"style,omitempty"`
 	Text     string      `json:"text,omitempty"`
 	Action   string      `json:"action,omitempty"`
+	Checked  *bool       `json:"checked,omitempty"`
 	Visible  *bool       `json:"visible,omitempty"`
 	Children []SceneNode `json:"children,omitempty"`
 }
@@ -75,6 +77,7 @@ type ComponentPatch struct {
 	Style   *Style  `json:"style,omitempty"`
 	Text    *string `json:"text,omitempty"`
 	Action  *string `json:"action,omitempty"`
+	Checked *bool   `json:"checked,omitempty"`
 	Visible *bool   `json:"visible,omitempty"`
 }
 
@@ -131,6 +134,9 @@ func ApplyPatch(doc *SceneDocument, patch ComponentPatch) error {
 	}
 	if patch.Action != nil {
 		node.Action = *patch.Action
+	}
+	if patch.Checked != nil {
+		node.Checked = patch.Checked
 	}
 	if patch.Visible != nil {
 		node.Visible = patch.Visible

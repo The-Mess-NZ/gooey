@@ -36,6 +36,7 @@ Fields:
 - `style`: Optional. Visual styling for the node.
 - `text`: Optional. Used by text-capable components such as `label` and `button`.
 - `action`: Optional. Host-defined action string emitted by interactive components.
+- `checked`: Optional. Boolean state used by `toggle` components.
 - `visible`: Optional. Defaults to `true` when omitted.
 - `children`: Optional. Nested child nodes.
 
@@ -46,6 +47,7 @@ Current built-ins:
 - `container`: Draws an optional background or border and lays out child nodes.
 - `label`: Draws wrapped or truncated text within its bounds.
 - `button`: Draws a pressable box with centered text and emits `component_activate` on release inside bounds.
+- `toggle`: Draws a switch control based on `checked` and emits `component_activate` on release inside bounds.
 
 Built-ins are registered in separate files under [pkg/components/container.go](/home/admin/gooey/pkg/components/container.go), [pkg/components/label.go](/home/admin/gooey/pkg/components/label.go), and [pkg/components/button.go](/home/admin/gooey/pkg/components/button.go). Custom component types can be added by registering another factory with `components.RegisterComponent`.
 
@@ -134,6 +136,7 @@ Supported patch fields:
 - `style`
 - `text`
 - `action`
+- `checked`
 - `visible`
 
 Patch example:

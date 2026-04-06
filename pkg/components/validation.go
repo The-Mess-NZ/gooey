@@ -38,7 +38,7 @@ func ValidateComponentPatch(patch ComponentPatch) error {
 	if patch.ID == "" {
 		return &ValidationError{Code: ValidationCodeInvalidPatch, Message: "patch id is required"}
 	}
-	if patch.Bounds == nil && patch.Style == nil && patch.Text == nil && patch.Action == nil && patch.Visible == nil {
+	if patch.Bounds == nil && patch.Style == nil && patch.Text == nil && patch.Action == nil && patch.Checked == nil && patch.Visible == nil {
 		return &ValidationError{Code: ValidationCodeInvalidPatch, Message: "patch must include at least one field to update"}
 	}
 	if patch.Bounds != nil {

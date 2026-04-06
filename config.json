@@ -9,6 +9,10 @@
     "label": {
       "fontSize": 13,
       "textPadding": 4
+    },
+    "toggle": {
+      "textPadding": 3,
+      "borderWidth": 2
     }
   },
   "touch": {

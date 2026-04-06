@@ -30,6 +30,14 @@ func defaultStyle(nodeType string) Style {
 			FontSize:    defaults.FontSize,
 			TextPadding: defaults.TextPadding,
 		}
+	case NodeTypeToggle:
+		return Style{
+			Background:  "#2F6B4F",
+			Foreground:  "#F2F2E9",
+			BorderColor: "#9ED8B5",
+			BorderWidth: defaults.BorderWidth,
+			TextPadding: defaults.TextPadding,
+		}
 	default:
 		return Style{
 			FontSize:    defaults.FontSize,
