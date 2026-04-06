@@ -118,10 +118,11 @@ func (t *TouchListener) transformCoordinates(rawX, rawY int32) (int, int) {
 	scaledX := t.scale(rawX, t.MinXRaw, t.MaxXRaw, t.ScreenXPixels)
 	scaledY := t.scale(rawY, t.MinYRaw, t.MaxYRaw, t.ScreenYPixels)
 
-	if t.InvertX {
+	// TODO: inverted the inverts due to fixme note in calibrate.go
+	if !t.InvertX {
 		scaledX = t.ScreenXPixels - scaledX
 	}
-	if t.InvertY {
+	if !t.InvertY {
 		scaledY = t.ScreenYPixels - scaledY
 	}
 	if t.IsLandscape {

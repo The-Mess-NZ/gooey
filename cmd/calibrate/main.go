@@ -43,6 +43,7 @@ type rawTouchCollector struct {
 	samples chan rawPoint
 }
 
+// FIXME: There seems to be a discrepancy between what calibrate and evdev.go see as "inverted".
 func main() {
 	configPath, err := ensureConfigLoaded()
 	if err != nil {

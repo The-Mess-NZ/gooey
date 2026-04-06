@@ -10,51 +10,51 @@
       "fontSize": 13,
       "textPadding": 4
     },
-    "toggle": {
-      "textPadding": 3,
-      "borderWidth": 2
-    },
     "soft_button_bar": {
       "fontSize": 11,
       "textPadding": 2,
       "borderWidth": 1
+    },
+    "toggle": {
+      "textPadding": 3,
+      "borderWidth": 2
     }
   },
   "touch": {
     "devicePath": "/dev/input/by-path/platform-fe204000.spi-cs-1-platform-stmpe-ts-event",
-    "minXRaw": 387,
-    "maxXRaw": 3520,
-    "minYRaw": 642,
-    "maxYRaw": 3523,
+    "minXRaw": 355,
+    "maxXRaw": 3547,
+    "minYRaw": 507,
+    "maxYRaw": 3491,
     "ScreenXPixels": 240,
     "ScreenYPixels": 320,
-    "invertX": false,
-    "invertY": true,
+    "invertX": true,
+    "invertY": false,
     "isLandscape": true
   },
   "gpio": {
     "buttons": [
       {
         "id": "button1",
-        "pin": 23,
+        "pin": "23",
         "pull": "up",
         "invert": true
       },
       {
         "id": "button2",
-        "pin": 22,
+        "pin": "22",
         "pull": "up",
         "invert": true
       },
       {
         "id": "button3",
-        "pin": 27,
+        "pin": "27",
         "pull": "up",
         "invert": true
       },
       {
         "id": "button4",
-        "pin": 18,
+        "pin": "18",
         "pull": "up",
         "invert": true
       }
