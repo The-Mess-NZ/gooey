@@ -151,6 +151,7 @@ func LoadConfigFromCandidates(paths ...string) (string, error) {
 	return "", nil
 }
 
+// TODO: Consider - looks like we have both code-level defaults, and defaults in the config.json also.
 func defaultConfig() Config {
 	return Config{
 		Components: map[string]ComponentDefaults{
@@ -167,6 +168,11 @@ func defaultConfig() Config {
 			NodeTypeToggle: {
 				TextPadding: 3,
 				BorderWidth: 2,
+			},
+			NodeTypeSoftBar: {
+				FontSize:    11,
+				TextPadding: 2,
+				BorderWidth: 1,
 			},
 		},
 		Touch: TouchConfig{

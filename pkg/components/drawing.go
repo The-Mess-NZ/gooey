@@ -38,6 +38,15 @@ func defaultStyle(nodeType string) Style {
 			BorderWidth: defaults.BorderWidth,
 			TextPadding: defaults.TextPadding,
 		}
+	case NodeTypeSoftBar:
+		return Style{
+			Background:  "#314554",
+			Foreground:  "#F2F2E9",
+			BorderColor: "#A8C2D4",
+			BorderWidth: defaults.BorderWidth,
+			FontSize:    defaults.FontSize,
+			TextPadding: defaults.TextPadding,
+		}
 	default:
 		return Style{
 			FontSize:    defaults.FontSize,

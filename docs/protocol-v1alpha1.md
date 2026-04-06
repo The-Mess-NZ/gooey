@@ -71,6 +71,7 @@ Supported built-in node types in this implementation:
 - `label`
 - `button`
 - `toggle`
+- `soft_button_bar`
 
 Supported automatic layout directions:
 
@@ -100,6 +101,24 @@ Supported patch fields in this implementation:
 - `action`
 - `checked`
 - `visible`
+
+`soft_button_bar` nodes carry a four-slot `softButtons` payload in the submitted scene document:
+
+```json
+{
+  "id": "navigation-bar",
+  "type": "soft_button_bar",
+  "bounds": { "height": 34 },
+  "softButtons": [
+    { "label": "<<" },
+    { "label": "<" },
+    { "label": ">" },
+    { "label": ">>" }
+  ]
+}
+```
+
+Each bar must define exactly four slots. Empty labels still render blank boxes so the host can show unused hardware button positions without assigning them an action.
 
 ## Events
 

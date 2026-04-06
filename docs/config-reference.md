@@ -102,6 +102,7 @@ Current built-in component types are:
 - `label`
 - `button`
 - `toggle`
+- `soft_button_bar`
 
 Example:
 
@@ -123,6 +124,7 @@ Example:
 | `label` | `13` | `4` | unset |
 | `button` | `14` | `6` | `2` |
 | `toggle` | unset | `3` | `2` |
+| `soft_button_bar` | `11` | `2` | `1` |
 
 ### Component Default Fields
 

@@ -56,6 +56,7 @@ Fields:
 - `action`: Optional. Host-defined action string emitted by interactive components.
 - `checked`: Optional. Boolean state used by `toggle` components.
 - `visible`: Optional. Defaults to `true` when omitted.
+- `softButtons`: Optional. Used only by `soft_button_bar` nodes and must contain exactly four slots.
 - `children`: Optional. Nested child nodes.
 
 ## Supported Built-in Component Types
@@ -66,8 +67,25 @@ Current built-ins:
 - `label`: Draws wrapped or truncated text within its bounds.
 - `button`: Draws a pressable box with centered text and emits `component_activate` on release inside bounds.
 - `toggle`: Draws a switch control based on `checked` and emits `component_activate` on release inside bounds.
+- `soft_button_bar`: Draws a bottom-row strip divided into four equal visual slots. It is visual-only in this proof of concept and does not emit touch activations.
 
-Built-ins are registered in separate files under [pkg/components/container.go](/home/admin/gooey/pkg/components/container.go), [pkg/components/label.go](/home/admin/gooey/pkg/components/label.go), and [pkg/components/button.go](/home/admin/gooey/pkg/components/button.go). Custom component types can be added by registering another factory with `components.RegisterComponent`.
+Built-ins are registered in separate files under [pkg/components/container.go](/home/admin/gooey/pkg/components/container.go), [pkg/components/label.go](/home/admin/gooey/pkg/components/label.go), [pkg/components/button.go](/home/admin/gooey/pkg/components/button.go), [pkg/components/toggle.go](/home/admin/gooey/pkg/components/toggle.go), and [pkg/components/soft_button_bar.go](/home/admin/gooey/pkg/components/soft_button_bar.go). Custom component types can be added by registering another factory with `components.RegisterComponent`.
+
+## SoftButtonSlot
+
+JSON shape:
+
+```json
+{
+  "label": "prev"
+}
+```
+
+Rules:
+
+- `soft_button_bar` nodes must define exactly four `softButtons` entries.
+- Empty labels still render blank boxes so unused hardware button positions stay visible.
+- Scene-specific behavior still comes from `inputBindings`, not from the `soft_button_bar` node itself.
 
 ## Bounds
 

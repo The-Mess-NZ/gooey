@@ -75,6 +75,9 @@ func validateNode(node SceneNode, ids map[string]struct{}, isRoot bool) error {
 	if _, ok := componentFactory(node.Type); !ok {
 		return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("scene node %q uses unsupported component type %q", node.ID, node.Type)}
 	}
+	if err := validateNodeTypeFields(node); err != nil {
+		return err
+	}
 	if isRoot && node.Visible != nil && !*node.Visible {
 		return &ValidationError{Code: ValidationCodeInvalidScene, Message: "scene root cannot be hidden"}
 	}
@@ -105,6 +108,22 @@ func validateNode(node SceneNode, ids map[string]struct{}, isRoot bool) error {
 		if err := validateNode(child, ids, false); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func validateNodeTypeFields(node SceneNode) error {
+	if len(node.SoftButtons) > 0 && node.Type != NodeTypeSoftBar {
+		return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("scene node %q softButtons are only supported for %q", node.ID, NodeTypeSoftBar)}
+	}
+	if node.Type != NodeTypeSoftBar {
+		return nil
+	}
+	if len(node.SoftButtons) != 4 {
+		return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("scene node %q soft button bars must define exactly 4 slots", node.ID)}
+	}
+	if len(node.Children) > 0 {
+		return &ValidationError{Code: ValidationCodeInvalidScene, Message: fmt.Sprintf("scene node %q soft button bars cannot have children", node.ID)}
 	}
 	return nil
 }

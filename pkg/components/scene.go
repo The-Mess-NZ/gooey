@@ -22,6 +22,7 @@ const (
 	NodeTypeLabel     = "label"
 	NodeTypeButton    = "button"
 	NodeTypeToggle    = "toggle"
+	NodeTypeSoftBar   = "soft_button_bar"
 
 	LayoutDirectionVertical   = "vertical"
 	LayoutDirectionHorizontal = "horizontal"
@@ -34,18 +35,24 @@ type SceneDocument struct {
 	Root          SceneNode      `json:"root"`
 }
 
+// SoftButtonSlot describes one visual slot in the bottom-row soft button bar.
+type SoftButtonSlot struct {
+	Label string `json:"label,omitempty"`
+}
+
 // SceneNode describes a single renderable or layout node.
 type SceneNode struct {
-	ID       string      `json:"id"`
-	Type     string      `json:"type"`
-	Bounds   *Rect       `json:"bounds,omitempty"`
-	Layout   *Layout     `json:"layout,omitempty"`
-	Style    *Style      `json:"style,omitempty"`
-	Text     string      `json:"text,omitempty"`
-	Action   string      `json:"action,omitempty"`
-	Checked  *bool       `json:"checked,omitempty"`
-	Visible  *bool       `json:"visible,omitempty"`
-	Children []SceneNode `json:"children,omitempty"`
+	ID          string           `json:"id"`
+	Type        string           `json:"type"`
+	Bounds      *Rect            `json:"bounds,omitempty"`
+	Layout      *Layout          `json:"layout,omitempty"`
+	Style       *Style           `json:"style,omitempty"`
+	Text        string           `json:"text,omitempty"`
+	Action      string           `json:"action,omitempty"`
+	Checked     *bool            `json:"checked,omitempty"`
+	Visible     *bool            `json:"visible,omitempty"`
+	SoftButtons []SoftButtonSlot `json:"softButtons,omitempty"`
+	Children    []SceneNode      `json:"children,omitempty"`
 }
 
 // Rect is a JSON-friendly rectangle definition.

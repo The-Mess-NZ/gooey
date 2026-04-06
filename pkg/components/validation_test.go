@@ -13,6 +13,29 @@ func TestValidateSceneDocumentAcceptsInputBindings(t *testing.T) {
 	}
 }
 
+func TestValidateSceneDocumentAcceptsSoftButtonBar(t *testing.T) {
+	doc := SceneDocument{
+		Root: SceneNode{
+			ID:   "root",
+			Type: NodeTypeContainer,
+			Children: []SceneNode{{
+				ID:   "soft-bar",
+				Type: NodeTypeSoftBar,
+				SoftButtons: []SoftButtonSlot{
+					{Label: "<<"},
+					{Label: "<"},
+					{Label: ">"},
+					{Label: ">>"},
+				},
+			}},
+		},
+	}
+
+	if err := ValidateSceneDocument(doc); err != nil {
+		t.Fatalf("ValidateSceneDocument() error = %v", err)
+	}
+}
+
 func TestValidateSceneDocumentRejectsInvalidInputBindings(t *testing.T) {
 	tests := []struct {
 		name string
@@ -44,6 +67,30 @@ func TestValidateSceneDocumentRejectsInvalidInputBindings(t *testing.T) {
 			doc: SceneDocument{
 				InputBindings: []InputBinding{{ID: "next"}},
 				Root:          SceneNode{ID: "root", Type: NodeTypeContainer},
+			},
+		},
+		{
+			name: "soft bar requires four slots",
+			doc: SceneDocument{
+				Root: SceneNode{
+					ID:   "root",
+					Type: NodeTypeContainer,
+					Children: []SceneNode{{
+						ID:          "soft-bar",
+						Type:        NodeTypeSoftBar,
+						SoftButtons: []SoftButtonSlot{{Label: "prev"}, {Label: "next"}},
+					}},
+				},
+			},
+		},
+		{
+			name: "soft bar fields rejected on other nodes",
+			doc: SceneDocument{
+				Root: SceneNode{
+					ID:          "root",
+					Type:        NodeTypeLabel,
+					SoftButtons: []SoftButtonSlot{{Label: "prev"}, {Label: "next"}, {Label: "ports"}, {Label: ""}},
+				},
 			},
 		},
 	}

@@ -13,6 +13,11 @@
     "toggle": {
       "textPadding": 3,
       "borderWidth": 2
+    },
+    "soft_button_bar": {
+      "fontSize": 11,
+      "textPadding": 2,
+      "borderWidth": 1
     }
   },
   "touch": {
